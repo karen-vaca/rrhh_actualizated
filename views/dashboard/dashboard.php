@@ -1,4 +1,4 @@
-<?php
+ <?php
 session_start();
 if (!isset($_SESSION['logueado']) || !$_SESSION['logueado']) {
     header("Location: ../../index.php"); exit();
@@ -344,7 +344,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Vacaciones
     </a>
     <div class="nav-section">SG-SST</div>
-    <a href="../sst/perfil.php" class="nav-item">
+    <a href="../perfil_salud/index.php" class="nav-item">
       <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Perfil de Salud
     </a>
     <a href="../examenes/index.php" class="nav-item">

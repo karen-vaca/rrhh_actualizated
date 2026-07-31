@@ -13,14 +13,13 @@ try {
     // Desarmamos la URL para sacar los datos
     $url_parseada = parse_url($url_db);
 
-    $host     = $url_parseada["host"];
-    $port     = $url_parseada["port"];
-    $username = $url_parseada["user"];
-    $password = $url_parseada["pass"];
-    $dbname   = substr($url_parseada["path"], 1);
+$host = "127.0.0.1";
+$port = "3306";
+$dbname = "railway";
+$username = "root";
+$password = "";
 
-    // Preparamos la conexión
-    $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
+$dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
     $opciones = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

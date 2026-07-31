@@ -266,6 +266,12 @@ $total_filtrado = count($trabajadores);
   --shadow-md:0 6px 24px rgba(0,0,0,0.09);
 }
 html,body{height:100%;overflow-x:hidden}
+html,
+body{
+    margin:0 !important;
+    padding:0 !important;
+}
+
 body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--text)}
  
 /* ── LAYOUT ── */
@@ -309,7 +315,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
   height:var(--topbar-h);background:var(--white);
   border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
-  padding:0 28px;position:sticky;top:0;z-index:50;
+  padding:0 28px;position:sticky;top:0;z-index:150;
   box-shadow:0 1px 8px rgba(0,0,0,0.05);
 }
 .topbar-left{display:flex;align-items:center;gap:16px}
@@ -1357,7 +1363,7 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Vacaciones
     </a>
     <div class="nav-section">SG-SST</div>
-    <a href="../sst/perfil.php" class="nav-item">
+    <a href="../perfil_salud/index.php" class="nav-item">
       <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Perfil de Salud
     </a>
     <a href="../examenes/index.php" class="nav-item">
@@ -1487,7 +1493,7 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 
     <div class="mini-stat">
       <div class="mini-stat-icon ic-purple">
-        <svg viewBox="0 0 24 24">
+        <svg viewBox="0 0 24 24">   
           <circle cx="12" cy="8" r="4"/>
           <path d="M20 21a8 8 0 10-16 0"/>
         </svg>
