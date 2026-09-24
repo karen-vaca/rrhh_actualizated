@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 /**
  * ============================================================================
  *  ACCIÓN: Guardar restricción médica
@@ -18,6 +20,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../config/conexion.php';
+require_once __DIR__ . '/validaciones_restriccion.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     header('Location: index.php');
@@ -25,19 +28,25 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $idTrabajador = (int)($_POST['id_trabajador'] ?? 0);
-$tipo         = trim($_POST['tipo'] ?? '');
-$fechaInicio  = trim($_POST['fecha_inicio'] ?? '');
-$fechaFin     = trim($_POST['fecha_fin'] ?? '') ?: null;
-$descripcion  = trim($_POST['descripcion'] ?? '');
 
-/* Validación mínima del lado del servidor — nunca confiar solo en el
-   'required' del HTML (§14.8) */
-if ($idTrabajador <= 0 || $tipo === '' || $fechaInicio === '' || $descripcion === '') {
-    header('Location: index.php?vista=detalle&id=' . $idTrabajador
-        . '&mensaje=' . urlencode('Faltan campos obligatorios. Verifica el formulario.')
-        . '&tipo=warning');
+/* Validación del lado del servidor — nunca confiar solo en el 'required' del HTML
+   (§14.8): tipo de la lista, fechas que existan, fin >= inicio y descripción.
+   Ver validaciones_restriccion.php. */
+if ($idTrabajador <= 0) {
+    header('Location: index.php?mensaje=' . urlencode('Faltan campos obligatorios. Verifica el formulario.') . '&tipo=warning');
     exit;
 }
+$validacion = validarRestriccion($_POST);
+if ($validacion['errores']) {
+    header('Location: index.php?vista=detalle&id=' . $idTrabajador
+        . '&mensaje=' . urlencode('No se guardó la restricción: ' . reset($validacion['errores']))
+        . '&tipo=error');
+    exit;
+}
+$tipo        = $validacion['datos']['tipo'];
+$fechaInicio = $validacion['datos']['fecha_inicio'];
+$fechaFin    = $validacion['datos']['fecha_fin'];
+$descripcion = $validacion['datos']['descripcion'];
 
 try {
     $conexion->beginTransaction();

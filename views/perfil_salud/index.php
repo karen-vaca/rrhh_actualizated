@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 /**
  * ============================================================================
  *  MÓDULO: PERFIL DE SALUD (SG-SST)
@@ -39,6 +41,7 @@ if (!file_exists($conexionFile)) {
     die('Error crítico: no se encontró el archivo de conexión en ' . htmlspecialchars($conexionFile));
 }
 require_once $conexionFile;
+require_once __DIR__ . '/validaciones_restriccion.php';
 
 /* ----------------------------------------------------------------------
  * 2. DATOS DEL USUARIO EN TOPBAR (igual patrón que trabajadores/index.php)
@@ -484,6 +487,10 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
   .form-row,.ro-row{grid-template-columns:1fr}.form-group.full{grid-column:span 1}
 }
 @media(max-width:640px){thead th:nth-child(2),tbody td:nth-child(2){display:none}}
+/* Errores por campo: mismo estilo que el formulario de Trabajadores */
+.has-error,.has-error:focus{border-color:#f87171 !important;background:#fff7f7 !important;box-shadow:0 0 0 3px rgba(248,113,113,.12) !important}
+.field-error{display:flex;align-items:flex-start;gap:5px;margin-top:5px;font-size:11.5px;font-weight:500;line-height:1.35;color:#dc2626}
+.field-error::before{content:'!';flex-shrink:0;width:14px;height:14px;border-radius:50%;background:#dc2626;color:#fff;font-size:10px;font-weight:700;line-height:14px;text-align:center;margin-top:1px}
 </style>
 </head>
 <body>
@@ -504,7 +511,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
     <nav class="sidebar-nav">
 
       <div class="nav-section">Principal</div>
-      <a href="../dashboard/index.php" class="nav-item">
+      <a href="../dashboard/dashboard.php" class="nav-item">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
         Resumen
       </a>
@@ -815,7 +822,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
-          <form class="modal-body" method="POST" action="guardar_restriccion.php">
+          <form class="modal-body" method="POST" action="guardar_restriccion.php" id="formRestriccion"><?php echo campoCsrf(); ?>
             <input type="hidden" name="id_trabajador" value="<?php echo (int)$t['id_trabajador'] ?>">
             <div class="form-section">
               <div class="form-section-title">Detalle de la restricción</div>
@@ -824,11 +831,9 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
                   <label class="form-label">Tipo de restricción</label>
                   <select class="form-select" name="tipo" required>
                     <option value="">Seleccione...</option>
-                    <option>No levantar cargas pesadas</option>
-                    <option>Restricción de trabajo en alturas</option>
-                    <option>Restricción de turnos nocturnos</option>
-                    <option>Reubicación temporal de puesto</option>
-                    <option>Otra</option>
+                    <?php foreach (TIPOS_RESTRICCION as $tipoRestriccion): ?>
+                      <option><?php echo htmlspecialchars($tipoRestriccion) ?></option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
                 <div class="form-group">
@@ -854,7 +859,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
         </div>
       </div>
 
-      <!-- Confirm card Finalizar restricción — GET real a finalizar_restriccion.php -->
+      <!-- Confirm card Finalizar restricción — POST a finalizar_restriccion.php -->
       <div class="confirm-backdrop" id="backdropFinalizar">
         <div class="confirm-card">
           <div class="confirm-head">
@@ -867,7 +872,11 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
           <div class="confirm-message">Verifica que exista concepto médico que respalde el levantamiento de la restricción.</div>
           <div class="confirm-actions">
             <button class="btn btn-cancel" onclick="document.getElementById('backdropFinalizar').classList.remove('open')">Cancelar</button>
-            <a class="btn btn-success" id="linkEjecutarFinalizar" href="#">Sí, finalizar</a>
+            <form method="POST" action="finalizar_restriccion.php" style="display:inline"><?php echo campoCsrf(); ?>
+              <input type="hidden" name="id" id="finalizarIdRestriccion">
+              <input type="hidden" name="trabajador" id="finalizarIdTrabajador">
+              <button type="submit" class="btn btn-success">Sí, finalizar</button>
+            </form>
           </div>
         </div>
       </div>
@@ -890,8 +899,8 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
 function confirmarFinalizar(idRestriccion, tipo, idTrabajador) {
   document.getElementById('descConfirmFinalizar').textContent =
     'Esta acción marcará "' + tipo + '" como resuelta y se registrará en el historial médico.';
-  document.getElementById('linkEjecutarFinalizar').href =
-    'finalizar_restriccion.php?id=' + idRestriccion + '&trabajador=' + idTrabajador;
+  document.getElementById('finalizarIdRestriccion').value = idRestriccion;
+  document.getElementById('finalizarIdTrabajador').value = idTrabajador;
   document.getElementById('backdropFinalizar').classList.add('open');
 }
 document.addEventListener('keydown', function (e) {
@@ -916,6 +925,50 @@ document.addEventListener('keydown', function (e) {
       window.history.replaceState({}, document.title, url.pathname + url.search);
     }, 450);
   }, 5000);
+})();
+
+/* Validación de la restricción (mismas reglas que validaciones_restriccion.php) */
+(function () {
+  const form = document.getElementById('formRestriccion');
+  if (!form) return;
+  const inicio = form.elements.fecha_inicio, fin = form.elements.fecha_fin;
+  function fechaReal(v) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || '');
+    if (!m) return false;
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return d.getFullYear() === +m[1] && d.getMonth() === +m[2] - 1 && d.getDate() === +m[3];
+  }
+  function marcar(campo, mensaje) {
+    const caja = campo.closest('.form-group') || campo.parentNode;
+    const previo = caja.querySelector('.field-error');
+    if (previo) previo.remove();
+    campo.classList.toggle('has-error', !!mensaje);
+    if (mensaje) {
+      const div = document.createElement('div');
+      div.className = 'field-error';
+      div.textContent = mensaje;
+      caja.appendChild(div);
+    }
+  }
+  function validar() {
+    let errInicio = '', errFin = '';
+    if (inicio.validity && inicio.validity.badInput) errInicio = 'La fecha de inicio no es una fecha válida (ese día no existe).';
+    else if (!inicio.value) errInicio = 'La fecha de inicio es obligatoria.';
+    else if (!fechaReal(inicio.value)) errInicio = 'La fecha de inicio no es una fecha válida (ese día no existe).';
+    if (fin.validity && fin.validity.badInput) errFin = 'La fecha de fin no es una fecha válida (ese día no existe).';
+    else if (fin.value && !fechaReal(fin.value)) errFin = 'La fecha de fin no es una fecha válida (ese día no existe).';
+    else if (!errInicio && fin.value && fin.value < inicio.value) errFin = 'La fecha de fin no puede ser anterior a la fecha de inicio.';
+    marcar(inicio, errInicio);
+    marcar(fin, errFin);
+    fin.min = inicio.value || '';
+    return errInicio || errFin;
+  }
+  inicio.addEventListener('change', validar);
+  fin.addEventListener('change', validar);
+  form.addEventListener('submit', function (ev) {
+    const error = validar();
+    if (error) { ev.preventDefault(); alert(error); }
+  });
 })();
 </script>
 </body>

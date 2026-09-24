@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -8,6 +10,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once '../../config/conexion.php';
+require_once __DIR__ . '/../components/validaciones_fechas.php';
 
 if (!isset($conexion) && isset($pdo)) {
     $conexion = $pdo;
@@ -80,6 +83,7 @@ function mensajeTextoNovedades(?string $mensaje): ?string {
         case 'rechazada': return 'Novedad rechazada correctamente.';
         case 'cerrada': return 'Novedad cerrada correctamente.';
         case 'datos_incompletos': return 'Faltan datos obligatorios. Revisa el formulario.';
+        case 'validacion': return 'No se guardó la novedad: ' . ($_GET['texto'] ?? 'hay datos no válidos.');
         case 'id_invalido': return 'El ID enviado no es válido.';
         case 'archivo_invalido': return 'El archivo no es válido. Solo se permiten PDF, JPG, JPEG o PNG.';
         case 'archivo_pesado': return 'El archivo supera el tamaño permitido de 5 MB.';
@@ -155,7 +159,7 @@ function subirSoporteNovedad(string $campo, ?string &$error): ?string {
     return $nombreSeguro;
 }
 
-$nombresSesion = $_SESSION['nombres'] ?? $_SESSION['nombre'] ?? 'Paola Andrea';
+$nombresSesion = $_SESSION['nombres'] ?? $_SESSION['nombre'] ?? 'Usuario';
 $apellidosSesion = $_SESSION['apellidos'] ?? '';
 $rolSesion = $_SESSION['rol_nombre'] ?? $_SESSION['rol'] ?? 'Administrador';
 $nombreSesionCompleto = trim($nombresSesion . ' ' . $apellidosSesion);
@@ -199,6 +203,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: index.php?mensaje=datos_incompletos');
                 exit;
             }
+
+            // Fechas: deben existir (2026-02-30 se rechaza) y el fin no puede ser anterior al inicio.
+            $rango = validarRangoFechas($_POST);
+            if ($rango['errores']) {
+                header('Location: index.php?' . http_build_query(['mensaje' => 'validacion', 'texto' => reset($rango['errores'])]));
+                exit;
+            }
+            $fechaInicio = $rango['datos']['fecha_inicio'];
+            $fechaFin = (string)$rango['datos']['fecha_fin'];
 
             if (!in_array($categoria, $categorias, true)) $categoria = 'Laboral';
             if (!in_array($estado, $estados, true)) $estado = 'Pendiente';
@@ -576,14 +589,19 @@ main{margin-left:var(--sidebar-w);min-height:100vh;padding:0;background:var(--co
 .novedades-page .table-title,
 .novedades-page .modal-title{font-weight:800}
 
+/* Errores por campo: mismo estilo que el formulario de Trabajadores */
+.has-error,.has-error:focus{border-color:#f87171 !important;background:#fff7f7 !important;box-shadow:0 0 0 3px rgba(248,113,113,.12) !important}
+.field-error{display:flex;align-items:flex-start;gap:5px;margin-top:5px;font-size:11.5px;font-weight:500;line-height:1.35;color:#dc2626}
+.field-error::before{content:'!';flex-shrink:0;width:14px;height:14px;border-radius:50%;background:#dc2626;color:#fff;font-size:10px;font-weight:700;line-height:14px;text-align:center;margin-top:1px}
 </style>
 </head>
 <body class="novedades-page">
 
 <?php if ($mensajeTexto): ?>
-  <div class="toast" id="toastSistema">
+  <?php $esExito = in_array($mensaje, ['creado', 'actualizado', 'aprobada', 'rechazada', 'cerrada'], true); ?>
+  <div class="toast<?= $esExito ? '' : ' error' ?>" id="toastSistema">
     <strong><?= e($mensajeTexto) ?></strong>
-    <span>El módulo de novedades quedó actualizado.</span>
+    <span><?= $esExito ? 'El módulo de novedades quedó actualizado.' : 'No se guardaron cambios. Corrige el dato e inténtalo de nuevo.' ?></span>
   </div>
 <?php endif; ?>
 
@@ -638,7 +656,7 @@ main{margin-left:var(--sidebar-w);min-height:100vh;padding:0;background:var(--co
       <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Perfil de Salud
     </a>
-    <a class="nav-item" href="../examenes_medicos/index.php">
+    <a class="nav-item" href="../examenes/index.php">
       <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
       Exámenes Médicos
     </a>
@@ -898,7 +916,7 @@ main{margin-left:var(--sidebar-w);min-height:100vh;padding:0;background:var(--co
                     <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
                   </button>
                   <?php if (($n['estado'] ?? '') !== 'Aprobada'): ?>
-                    <form class="inline" method="POST">
+                    <form class="inline" method="POST"><?php echo campoCsrf(); ?>
                       <input type="hidden" name="accion" value="cambiar_estado">
                       <input type="hidden" name="id_novedad" value="<?= (int)($n['id'] ?? 0) ?>">
                       <input type="hidden" name="estado" value="Aprobada">
@@ -908,7 +926,7 @@ main{margin-left:var(--sidebar-w);min-height:100vh;padding:0;background:var(--co
                     </form>
                   <?php endif; ?>
                   <?php if (($n['estado'] ?? '') !== 'Cerrada'): ?>
-                    <form class="inline" method="POST">
+                    <form class="inline" method="POST"><?php echo campoCsrf(); ?>
                       <input type="hidden" name="accion" value="cambiar_estado">
                       <input type="hidden" name="id_novedad" value="<?= (int)($n['id'] ?? 0) ?>">
                       <input type="hidden" name="estado" value="Cerrada">
@@ -935,7 +953,7 @@ main{margin-left:var(--sidebar-w);min-height:100vh;padding:0;background:var(--co
       <div class="modal-title" id="formTitulo">Registrar novedad</div>
       <button class="modal-close" type="button" onclick="cerrarModalFormulario()">×</button>
     </div>
-    <form method="POST" enctype="multipart/form-data" id="formNovedad">
+    <form method="POST" enctype="multipart/form-data" id="formNovedad"><?php echo campoCsrf(); ?>
       <input type="hidden" name="accion" id="accionForm" value="crear">
       <input type="hidden" name="id_novedad" id="idNovedad" value="">
       <div class="modal-body">
@@ -1216,6 +1234,57 @@ if (toast) {
 }
 
 cargarTipos();
+
+// ── Validación de fechas (mismas reglas que views/components/validaciones_fechas.php) ──
+(function () {
+  const form = document.getElementById('formNovedad');
+  const inicio = document.getElementById('fechaInicio');
+  const fin = document.getElementById('fechaFin');
+  if (!form || !inicio || !fin) return;
+
+  function fechaReal(v) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || '');
+    if (!m) return false;
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return d.getFullYear() === +m[1] && d.getMonth() === +m[2] - 1 && d.getDate() === +m[3];
+  }
+  function marcar(campo, mensaje) {
+    const caja = campo.closest('.form-group') || campo.parentNode;
+    const previo = caja.querySelector('.field-error');
+    if (previo) previo.remove();
+    campo.classList.toggle('has-error', !!mensaje);
+    if (mensaje) {
+      const div = document.createElement('div');
+      div.className = 'field-error';
+      div.textContent = mensaje;
+      caja.appendChild(div);
+    }
+  }
+  function validar() {
+    // En type="date", un día inexistente escrito a mano deja el valor vacío y marca badInput.
+    let errInicio = '', errFin = '';
+    if (inicio.validity && inicio.validity.badInput) errInicio = 'La fecha de inicio no es una fecha válida (ese día no existe).';
+    else if (!inicio.value) errInicio = 'La fecha de inicio es obligatoria.';
+    else if (!fechaReal(inicio.value)) errInicio = 'La fecha de inicio no es una fecha válida (ese día no existe).';
+    if (fin.validity && fin.validity.badInput) errFin = 'La fecha de fin no es una fecha válida (ese día no existe).';
+    else if (fin.value && !fechaReal(fin.value)) errFin = 'La fecha de fin no es una fecha válida (ese día no existe).';
+    else if (!errInicio && fin.value && fin.value < inicio.value) errFin = 'La fecha de fin no puede ser anterior a la fecha de inicio.';
+    marcar(inicio, errInicio);
+    marcar(fin, errFin);
+    fin.min = inicio.value || '';
+    return errInicio || errFin;
+  }
+  inicio.addEventListener('change', validar);
+  fin.addEventListener('change', validar);
+  form.addEventListener('submit', function (ev) {
+    const error = validar();
+    if (error) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      alert(error);
+    }
+  }, true);
+})();
 </script>
 </body>
 </html>

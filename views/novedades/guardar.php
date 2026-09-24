@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -8,6 +10,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once '../../config/conexion.php';
+require_once __DIR__ . '/../components/validaciones_fechas.php';
 
 if (!isset($conexion) && isset($pdo)) {
     $conexion = $pdo;
@@ -20,23 +23,23 @@ if (!isset($conexion) || !($conexion instanceof PDO)) {
 $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 $conexion->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-function redirigirNovedades(string $mensaje): void {
-    header('Location: index.php?mensaje=' . urlencode($mensaje));
+function redirigirNovedades(string $mensaje, array $extra = []): void {
+    header('Location: index.php?' . http_build_query(array_merge(['mensaje' => $mensaje], $extra)));
     exit;
+}
+
+// Fechas: deben existir (2026-02-30 se rechaza, antes se convertía en 2026-03-02) y el
+// fin no puede ser anterior al inicio.
+function fechasValidadasNovedades(): array {
+    $rango = validarRangoFechas($_POST);
+    if ($rango['errores']) {
+        redirigirNovedades('validacion', ['texto' => reset($rango['errores'])]);
+    }
+    return [$rango['datos']['fecha_inicio'], $rango['datos']['fecha_fin']];
 }
 
 function limpiarNovedades($valor): string {
     return trim((string)($valor ?? ''));
-}
-
-function fechaNovedades($valor): ?string {
-    $valor = limpiarNovedades($valor);
-    if ($valor === '') {
-        return null;
-    }
-
-    $dt = DateTime::createFromFormat('Y-m-d', $valor);
-    return $dt ? $dt->format('Y-m-d') : null;
 }
 
 function accionPermitidaNovedades(string $accion): bool {
@@ -110,8 +113,7 @@ try {
         $idTrabajador = (int)($_POST['id_trabajador'] ?? 0);
         $categoria = limpiarNovedades($_POST['categoria'] ?? '');
         $tipoNovedad = limpiarNovedades($_POST['tipo_novedad'] ?? '');
-        $fechaInicio = fechaNovedades($_POST['fecha_inicio'] ?? null);
-        $fechaFin = fechaNovedades($_POST['fecha_fin'] ?? null);
+        [$fechaInicio, $fechaFin] = fechasValidadasNovedades();
         $estado = limpiarNovedades($_POST['estado'] ?? 'Pendiente');
         $descripcion = limpiarNovedades($_POST['descripcion'] ?? '');
         $responsable = limpiarNovedades($_POST['responsable'] ?? '');
@@ -183,8 +185,7 @@ try {
         $idNovedad = (int)($_POST['id_novedad'] ?? 0);
         $categoria = limpiarNovedades($_POST['categoria'] ?? '');
         $tipoNovedad = limpiarNovedades($_POST['tipo_novedad'] ?? '');
-        $fechaInicio = fechaNovedades($_POST['fecha_inicio'] ?? null);
-        $fechaFin = fechaNovedades($_POST['fecha_fin'] ?? null);
+        [$fechaInicio, $fechaFin] = fechasValidadasNovedades();
         $estado = limpiarNovedades($_POST['estado'] ?? 'Pendiente');
         $descripcion = limpiarNovedades($_POST['descripcion'] ?? '');
         $observaciones = limpiarNovedades($_POST['observaciones'] ?? '');
