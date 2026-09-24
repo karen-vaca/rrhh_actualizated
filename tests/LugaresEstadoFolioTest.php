@@ -223,6 +223,16 @@ prueba('crear y editar no tienen campo de estado', function () {
         afirmar(!preg_match('/<(select|input)[^>]*name="estado"/', $h), "$pag todavía tiene un campo de estado");
     }
 });
+prueba('el formulario de crear no muestra el estado laboral (ni campo ni texto)', function () {
+    $h = ejecutarComoWeb('views/trabajadores/index.php', [], 'GET')['cuerpo'];
+    $formulario = substr($h, strpos($h, 'id="modalNuevo"'), 60000);
+    $formulario = substr($formulario, 0, strpos($formulario, '</form>'));
+    afirmar($formulario !== '' && !str_contains($formulario, 'Estado laboral'), 'El formulario de crear todavía menciona el estado laboral');
+});
+prueba('editar sí muestra el estado laboral como información (no editable)', function () {
+    $h = ejecutarComoWeb('views/trabajadores/editar.php', ['id' => '9'], 'GET')['cuerpo'];
+    afirmar(str_contains($h, 'Estado laboral') && str_contains($h, 'desde la ficha del trabajador, no desde este formulario'), 'Falta la información de estado en editar');
+});
 prueba('en todo el código, solo activar.php e inactivar.php cambian el estado de un trabajador', function () {
     $encontrados = [];
     $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(__DIR__ . '/../views', FilesystemIterator::SKIP_DOTS));
@@ -265,6 +275,11 @@ prueba('ficha y edición muestran el folio junto al nombre y no hay campo para e
         afirmar(str_contains($h, '<span class="folio"') && str_contains($h, 'Folio #0009'), "$pag: falta el folio");
         afirmar(!preg_match('/<input(?![^>]*type="hidden")[^>]*name="id_trabajador"/', $h), "$pag: el ID no debería ser editable");
     }
+});
+
+prueba('el listado de trabajadores no muestra el folio', function () {
+    $h = ejecutarComoWeb('views/trabajadores/index.php', [], 'GET')['cuerpo'];
+    afirmar(str_contains($h, 'ver.php?id=') && !str_contains($h, 'Folio #'), 'El listado todavía muestra el folio');
 });
 
 echo "\nFicha del trabajador: cada dato aparece una sola vez\n";

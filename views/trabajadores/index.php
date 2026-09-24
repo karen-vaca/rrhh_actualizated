@@ -962,13 +962,6 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 </style>
 <link rel="stylesheet" href="validacion_trabajador.css">
 <link rel="stylesheet" href="../components/select_buscador.css">
-<style>
-/* Folio: el id interno como dato secundario (referencia para soporte y auditoría) */
-.folio{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:500;color:var(--text-soft);letter-spacing:.2px;vertical-align:middle;white-space:nowrap}
-.lugar-revisar{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:2px 8px;vertical-align:middle}
-.nota-campo{font-size:12px;line-height:1.45;color:var(--text-soft)}
-.nota-campo strong{color:var(--text-mid)}
-</style>
 </head>
 <body>
 <?php if (isset($_GET['debug']) && $_GET['debug'] === '1') {
@@ -1112,14 +1105,13 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 
 <div class="form-row">
     <div class="form-group">
-        <span class="form-label">Estado laboral</span>
-        <div class="nota-campo">El trabajador se crea <strong>Activo</strong>. Para desactivarlo después, usa la acción "Desactivar" del listado.</div>
-    </div>
-
-    <div class="form-group">
         <label class="form-label">Fecha de ingreso</label>
         <input class="form-input<?php echo claseError($erroresNuevo, 'fecha_ingreso'); ?>" type="date" name="fecha_ingreso" max="<?php echo date('Y-m-d'); ?>" value="<?php echo htmlspecialchars(valorNuevo('fecha_ingreso')); ?>" required>
         <?php echo mensajeError($erroresNuevo, 'fecha_ingreso'); ?>
+    </div>
+
+    <div class="form-group">
+        <!-- celda vacía para mantener el grid de 2 columnas -->
     </div>
 </div>
 
@@ -1674,7 +1666,7 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
               <div>
                 <div class="worker-name"><?php echo htmlspecialchars("$nom $ape")?></div>
                 <div class="worker-id">
-                  <?php echo 'Folio #' . str_pad($id, 4, '0', STR_PAD_LEFT) . ' · ' . htmlspecialchars(generoNombre($t['id_generos'] ?? 0)); ?>
+                  <?php echo htmlspecialchars(generoNombre($t['id_generos'] ?? 0)); ?>
                 </div>
               </div>
             </div>
