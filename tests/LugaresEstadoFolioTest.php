@@ -229,9 +229,13 @@ prueba('el formulario de crear no muestra el estado laboral (ni campo ni texto)'
     $formulario = substr($formulario, 0, strpos($formulario, '</form>'));
     afirmar($formulario !== '' && !str_contains($formulario, 'Estado laboral'), 'El formulario de crear todavía menciona el estado laboral');
 });
-prueba('editar sí muestra el estado laboral como información (no editable)', function () {
+prueba('editar: el estado aparece una sola vez, en el banner, con la nota de dónde se cambia', function () {
     $h = ejecutarComoWeb('views/trabajadores/editar.php', ['id' => '9'], 'GET')['cuerpo'];
-    afirmar(str_contains($h, 'Estado laboral') && str_contains($h, 'desde la ficha del trabajador, no desde este formulario'), 'Falta la información de estado en editar');
+    $i = strpos($h, '<div class="edit-hero">');
+    $banner = substr($h, $i, strpos($h, '<div class="edit-body">') - $i);
+    $formulario = substr($h, strpos($h, '<div class="edit-body">'));
+    afirmar(str_contains($banner, 'desde la ficha del trabajador, no desde este formulario'), 'Falta la nota junto al estado en el banner');
+    afirmar(!str_contains($formulario, 'Estado laboral') && !str_contains($formulario, 'no desde este formulario'), 'El formulario todavía muestra el estado');
 });
 prueba('en todo el código, solo activar.php e inactivar.php cambian el estado de un trabajador', function () {
     $encontrados = [];
@@ -324,5 +328,41 @@ prueba('dos columnas: personal y laboral a la izquierda; contacto, salud y regis
         afirmar(str_contains($der, $t), "Falta \"$t\" en la columna derecha");
     }
 });
+prueba('editar: banner de identidad de solo lectura con folio, documento y estado', function () use ($conexion) {
+    $h = ejecutarComoWeb('views/trabajadores/editar.php', ['id' => '9'], 'GET')['cuerpo'];
+    $doc = $conexion->query('SELECT numero_documento FROM trabajadores WHERE id_trabajador = 9')->fetchColumn();
+    $i = strpos($h, '<div class="edit-hero">');
+    $banner = substr($h, $i, strpos($h, '<div class="edit-body">') - $i);
+    afirmar(str_contains($banner, 'Folio #0009'), 'Falta el folio en el banner');
+    afirmar(preg_match('/<span class="edit-pill"[^>]*>' . preg_quote($doc, '/') . '<\/span>/', $banner) === 1, 'Falta el número de documento en el banner');
+    afirmar(preg_match('/edit-pill-estado is-(activo|inactivo)"[^>]*>(Activo|Inactivo)</', $banner) === 1, 'Falta el estado en el banner');
+    afirmar(!preg_match('/<(input|select|textarea)/', $banner), 'El banner no debe tener campos editables');
+});
+$seccionesEn = function (string $html, string $patronTitulo): array {
+    preg_match_all($patronTitulo, $html, $m);
+    return array_map(fn($t) => trim(preg_replace('/\s+/', ' ', strip_tags($t))), $m[1]);
+};
+prueba('editar: orden de secciones y Observaciones justo antes de los botones', function () use ($seccionesEn) {
+    $h = ejecutarComoWeb('views/trabajadores/editar.php', ['id' => '9'], 'GET')['cuerpo'];
+    $titulos = array_map(fn($t) => preg_replace('/ ·.*$/u', '', $t), $seccionesEn($h, '/<div class="edit-section-title">(.*?)<\/div>/s'));
+    $esperado = ['Información personal', 'Información complementaria', 'Información familiar', 'Contacto y datos laborales', 'Dotación (tallas)', 'Observaciones'];
+    afirmar($titulos === $esperado, 'Orden: ' . implode(' → ', $titulos));
+    $obs = strpos($h, 'name="observaciones"');
+    afirmar($obs > strpos($h, 'name="talla_botas"') && $obs < strpos($h, 'class="edit-actions"'), 'Observaciones debería quedar al final, antes de los botones');
+});
+prueba('editar: etiquetas de categoría en cada sección (Datos base, Perfil, Familia, RRHH, Notas)', function () {
+    $h = ejecutarComoWeb('views/trabajadores/editar.php', ['id' => '9'], 'GET')['cuerpo'];
+    preg_match_all('/<div class="edit-section-tag">([^<]+)<\/div>/', $h, $m);
+    afirmar($m[1] === ['Datos base', 'Perfil', 'Familia', 'RRHH', 'Notas'], 'Etiquetas: ' . implode(', ', $m[1]));
+});
+prueba('crear: mismo orden de secciones que editar', function () use ($seccionesEn) {
+    $h = ejecutarComoWeb('views/trabajadores/index.php', [], 'GET')['cuerpo'];
+    $form = substr($h, strpos($h, 'id="modalNuevo"'));
+    $form = substr($form, 0, strpos($form, '</form>'));
+    $titulos = array_map(fn($t) => preg_replace('/ ·.*$/u', '', $t), $seccionesEn($form, '/<div class="form-section"[^>]*>(.*?)<\/div>/s'));
+    $esperado = ['Información personal', 'Información complementaria', 'Información familiar', 'Contacto y datos laborales', 'Dotación (tallas)', 'Observaciones'];
+    afirmar($titulos === $esperado, 'Orden: ' . implode(' → ', $titulos));
+});
+
 echo "\n" . ($total - $fallos) . " de $total pruebas pasaron.\n";
 exit($fallos > 0 ? 1 : 0);

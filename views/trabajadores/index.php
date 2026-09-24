@@ -1074,80 +1074,6 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
         </div>
 
 
-<!-- ═══════════════════════════════════════════════ -->
-<!-- INFORMACIÓN LABORAL                              -->
-<!-- ═══════════════════════════════════════════════ -->
-<div class="form-section" style="margin-top:6px">Información laboral</div>
-
-<div class="form-row">
-    <div class="form-group">
-        <label class="form-label">Área</label>
-        <select class="form-select<?php echo claseError($erroresNuevo, 'id_area'); ?>" id="id_area" name="id_area" required>
-            <option value="">Seleccionar área</option>
-            <?php echo opcionesSelect($opcionesForm['id_area'], valorNuevo('id_area')); ?>
-        </select>
-        <?php echo mensajeError($erroresNuevo, 'id_area'); ?>
-    </div>
-
-    <div class="form-group">
-        <label class="form-label">Cargo</label>
-        <select class="form-select<?php echo claseError($erroresNuevo, 'id_cargo'); ?>" id="id_cargo" name="id_cargo" required>
-            <?php if ($cargosNuevo): ?>
-                <option value="">Seleccionar cargo</option>
-                <?php echo opcionesSelect($cargosNuevo, valorNuevo('id_cargo')); ?>
-            <?php else: ?>
-                <option value="">Seleccione primero un área</option>
-            <?php endif; ?>
-        </select>
-        <?php echo mensajeError($erroresNuevo, 'id_cargo'); ?>
-    </div>
-</div>
-
-<div class="form-row">
-    <div class="form-group">
-        <label class="form-label">Fecha de ingreso</label>
-        <input class="form-input<?php echo claseError($erroresNuevo, 'fecha_ingreso'); ?>" type="date" name="fecha_ingreso" max="<?php echo date('Y-m-d'); ?>" value="<?php echo htmlspecialchars(valorNuevo('fecha_ingreso')); ?>" required>
-        <?php echo mensajeError($erroresNuevo, 'fecha_ingreso'); ?>
-    </div>
-
-    <div class="form-group">
-        <!-- celda vacía para mantener el grid de 2 columnas -->
-    </div>
-</div>
-
-<div class="form-row">
-    <div class="form-group">
-        <label class="form-label">Correo electrónico</label>
-        <input class="form-input<?php echo claseError($erroresNuevo, 'correo_personal'); ?>" type="email" name="correo_personal" maxlength="100"
-               value="<?php echo htmlspecialchars(valorNuevo('correo_personal')); ?>"
-               placeholder="correo@empresa.com" required>
-        <?php echo mensajeError($erroresNuevo, 'correo_personal'); ?>
-    </div>
-
-    <div class="form-group">
-        <label class="form-label">Teléfono / Celular</label>
-        <input class="form-input<?php echo claseError($erroresNuevo, 'telefono'); ?>" type="tel" name="telefono" inputmode="numeric" maxlength="14"
-               value="<?php echo htmlspecialchars(valorNuevo('telefono')); ?>"
-               placeholder="3001234567" required>
-        <?php echo mensajeError($erroresNuevo, 'telefono'); ?>
-    </div>
-</div>
-
-<div class="form-row">
-    <div class="form-group">
-        <label class="form-label">EPS</label>
-        <select class="form-select<?php echo claseError($erroresNuevo, 'id_eps'); ?>" name="id_eps" required>
-            <option value="">Seleccionar EPS</option>
-            <?php echo opcionesSelect($opcionesForm['id_eps'], valorNuevo('id_eps')); ?>
-        </select>
-        <?php echo mensajeError($erroresNuevo, 'id_eps'); ?>
-    </div>
-
-    <div class="form-group">
-        <!-- celda vacía para mantener el grid de 2 columnas -->
-    </div>
-</div>
-
  <div class="form-section" style="margin-top:6px">Información complementaria</div>
 
 <div class="form-row">
@@ -1219,6 +1145,81 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
     <?php echo mensajeError($erroresNuevo, 'numero_hijos'); ?>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<!-- CONTACTO Y DATOS LABORALES                      -->
+<!-- ═══════════════════════════════════════════════ -->
+<div class="form-section" style="margin-top:6px">Contacto y datos laborales</div>
+
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-label">Área</label>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_area'); ?>" id="id_area" name="id_area" required>
+            <option value="">Seleccionar área</option>
+            <?php echo opcionesSelect($opcionesForm['id_area'], valorNuevo('id_area')); ?>
+        </select>
+        <?php echo mensajeError($erroresNuevo, 'id_area'); ?>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Cargo</label>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_cargo'); ?>" id="id_cargo" name="id_cargo" required>
+            <?php if ($cargosNuevo): ?>
+                <option value="">Seleccionar cargo</option>
+                <?php echo opcionesSelect($cargosNuevo, valorNuevo('id_cargo')); ?>
+            <?php else: ?>
+                <option value="">Seleccione primero un área</option>
+            <?php endif; ?>
+        </select>
+        <?php echo mensajeError($erroresNuevo, 'id_cargo'); ?>
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-label">Fecha de ingreso</label>
+        <input class="form-input<?php echo claseError($erroresNuevo, 'fecha_ingreso'); ?>" type="date" name="fecha_ingreso" max="<?php echo date('Y-m-d'); ?>" value="<?php echo htmlspecialchars(valorNuevo('fecha_ingreso')); ?>" required>
+        <?php echo mensajeError($erroresNuevo, 'fecha_ingreso'); ?>
+    </div>
+
+    <div class="form-group">
+        <!-- celda vacía para mantener el grid de 2 columnas -->
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <input class="form-input<?php echo claseError($erroresNuevo, 'correo_personal'); ?>" type="email" name="correo_personal" maxlength="100"
+               value="<?php echo htmlspecialchars(valorNuevo('correo_personal')); ?>"
+               placeholder="correo@empresa.com" required>
+        <?php echo mensajeError($erroresNuevo, 'correo_personal'); ?>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Teléfono / Celular</label>
+        <input class="form-input<?php echo claseError($erroresNuevo, 'telefono'); ?>" type="tel" name="telefono" inputmode="numeric" maxlength="14"
+               value="<?php echo htmlspecialchars(valorNuevo('telefono')); ?>"
+               placeholder="3001234567" required>
+        <?php echo mensajeError($erroresNuevo, 'telefono'); ?>
+    </div>
+</div>
+
+<div class="form-row">
+    <div class="form-group">
+        <label class="form-label">EPS</label>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_eps'); ?>" name="id_eps" required>
+            <option value="">Seleccionar EPS</option>
+            <?php echo opcionesSelect($opcionesForm['id_eps'], valorNuevo('id_eps')); ?>
+        </select>
+        <?php echo mensajeError($erroresNuevo, 'id_eps'); ?>
+    </div>
+
+    <div class="form-group">
+        <!-- celda vacía para mantener el grid de 2 columnas -->
+    </div>
+</div>
+
 
 <!-- ═══════════════════════════════════════════ -->
 <!-- NUEVA SECCIÓN: DOTACIÓN                     -->

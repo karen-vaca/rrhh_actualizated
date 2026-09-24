@@ -114,6 +114,7 @@ $apellidosTrabajador = $trabajador['apellidos'] ?? '';
 $nombreCompleto = trim($nombresTrabajador . ' ' . $apellidosTrabajador);
 $inicialTrabajador = inicialesPersona($nombresTrabajador, $apellidosTrabajador);
 // Si actualizar.php rechazó el formulario: errores por campo y datos que se habían enviado.
+$documentoOriginal = $trabajador['numero_documento'] ?? 'Sin documento';
 ['errores' => $erroresEdicion, 'old' => $oldEdicion] = tomarErroresFormulario();
 if ($oldEdicion) {
     $oldEdicion['celular'] = $oldEdicion['telefono'] ?? '';
@@ -124,6 +125,7 @@ foreach (catalogosTrabajador() as $campo => [$tabla, $idColumna, $nombreColumna]
 }
 
 $estadoTrabajador = (int)($trabajador['estado'] ?? 1);
+$documentoGuardado = $documentoOriginal ?? ($trabajador['numero_documento'] ?? 'Sin documento');
 
 $tipoDocumento = obtenerCatalogo(
     $conexion,
@@ -478,6 +480,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
 .edit-alert{border-radius:12px;padding:11px 14px;font-size:13px;font-weight:600;margin-bottom:14px;border:1px solid #fecaca;background:#fff1f2;color:#dc2626}
 @media(max-width:700px){.edit-hero{flex-direction:column;align-items:flex-start}.edit-hint{text-align:left;max-width:none}.edit-form-grid{grid-template-columns:1fr}.edit-actions .btn{flex:1}}
 
+.edit-section-sub{font-family:'DM Sans',sans-serif;font-size:12px;font-weight:400;color:var(--text-soft);letter-spacing:0;margin-left:4px}
+.edit-pill-estado.is-activo{background:rgba(45,223,110,.22);border-color:rgba(45,223,110,.45);color:#fff}
+.edit-pill-estado.is-inactivo{background:rgba(248,113,113,.25);border-color:rgba(248,113,113,.5);color:#fff}
+.edit-estado-nota{font-size:11.5px;color:rgba(255,255,255,.72)}
 </style>
 <link rel="stylesheet" href="validacion_trabajador.css">
 <link rel="stylesheet" href="../components/select_buscador.css">
@@ -647,31 +653,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
           <div>
             <div class="edit-name"><?php echo e($nombreCompleto ?: 'Sin nombre'); ?><span class="folio" title="Identificador interno del trabajador (referencia para soporte)">Folio #<?php echo str_pad((int)$trabajador['id_trabajador'], 4, '0', STR_PAD_LEFT); ?></span></div>
             <div class="edit-meta">
-              <span class="edit-pill"><?php echo e($trabajador['numero_documento'] ?? 'Sin documento'); ?></span>
-              <span class="edit-pill"><?php echo $estadoTrabajador === 1 ? 'Activo' : 'Inactivo'; ?></span>
+              <span class="edit-pill" title="Número de documento guardado (se edita en Información personal)"><?php echo e($documentoGuardado); ?></span>
+              <span class="edit-pill edit-pill-estado <?php echo $estadoTrabajador === 1 ? 'is-activo' : 'is-inactivo'; ?>"><?php echo $estadoTrabajador === 1 ? 'Activo' : 'Inactivo'; ?></span>
+              <span class="edit-estado-nota">Se cambia con <?php echo $estadoTrabajador === 1 ? '"Inactivar"' : '"Reactivar"'; ?> desde la ficha del trabajador, no desde este formulario.</span>
             </div>
           </div>
         </div>
         <div class="edit-hint">Los cambios quedarán guardados en la base de datos y podrás verificarlos en la ficha del trabajador.</div>
       </div>
-      <!-- ═══════════════════════════════════════════════ -->
-<!-- OBSERVACIONES                                    -->
-<!-- ═══════════════════════════════════════════════ -->
-<section class="edit-section">
-    <div class="edit-section-head">
-        <div class="edit-section-title">Observaciones</div>
-        <div class="edit-section-tag">Notas</div>
-    </div>
-    <div class="edit-form-grid">
-        <div class="edit-field full">
-            <label class="edit-label">Observaciones adicionales</label>
-            <textarea class="edit-input<?php echo claseError($erroresEdicion, 'observaciones'); ?>" name="observaciones" rows="5" maxlength="2000"
-                      placeholder="Escribe aquí cualquier observación relevante sobre el trabajador (antecedentes, recomendaciones, notas de RRHH, etc.)..."
-                      style="height:auto; padding:12px 14px; resize:vertical; font-family:'DM Sans',sans-serif; line-height:1.5;"><?php echo e($trabajador['observaciones'] ?? ''); ?></textarea>
-<?php echo mensajeError($erroresEdicion, 'observaciones'); ?>
-        </div>
-    </div>
-</section>
 
       <div class="edit-body">
 
@@ -931,26 +920,18 @@ Los detalles de familiares (hijos, cónyuge, padres u otros dependientes) podrá
             </div>
 
             <div class="edit-field">
-              <span class="edit-label">Estado laboral</span>
-              <div class="nota-campo"><strong><?php echo $estadoTrabajador === 1 ? 'Activo' : 'Inactivo'; ?></strong> · se cambia con <?php echo $estadoTrabajador === 1 ? '"Inactivar"' : '"Reactivar"'; ?> desde la ficha del trabajador, no desde este formulario.</div>
-            </div>
-            <div class="edit-field">
               <label class="edit-label">Fecha de ingreso</label>
               <input class="edit-input<?php echo claseError($erroresEdicion, 'fecha_ingreso'); ?>" type="date" name="fecha_ingreso" max="<?php echo date('Y-m-d'); ?>" required value="<?php echo e($trabajador['fecha_ingreso'] ?? ''); ?>">
 <?php echo mensajeError($erroresEdicion, 'fecha_ingreso'); ?>
             </div>
-            <!-- ══════════════════════════════════════════════ -->
-<!-- DOTACIÓN (TALLAS) - Sub-sección visual           -->
-<!-- ═══════════════════════════════════════════════ -->
-<div class="edit-field full" style="margin-top:8px; padding-top:16px; border-top:1px dashed var(--border);">
-    <div style="font-size:11px; font-weight:700; color:var(--text-soft); text-transform:uppercase; letter-spacing:.7px; margin-bottom:12px;">
-        Dotación (tallas)
-        <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--text-soft); margin-left:6px;">
-            · Para entrega de EPP y uniforme
-        </span>
-    </div>
-</div>
+          </div>
+        </section>
 
+        <section class="edit-section">
+          <div class="edit-section-head">
+            <div class="edit-section-title">Dotación (tallas) <span class="edit-section-sub">· Para entrega de EPP y uniforme</span></div>
+          </div>
+          <div class="edit-form-grid">
 <div class="edit-field">
     <label class="edit-label">Talla camisa</label>
     <select class="edit-select<?php echo claseError($erroresEdicion, 'talla_camisa'); ?>" name="talla_camisa">
@@ -988,6 +969,22 @@ Los detalles de familiares (hijos, cónyuge, padres u otros dependientes) podrá
 </div>
           </div>
         </section>
+
+<section class="edit-section">
+    <div class="edit-section-head">
+        <div class="edit-section-title">Observaciones</div>
+        <div class="edit-section-tag">Notas</div>
+    </div>
+    <div class="edit-form-grid">
+        <div class="edit-field full">
+            <label class="edit-label">Observaciones adicionales</label>
+            <textarea class="edit-input<?php echo claseError($erroresEdicion, 'observaciones'); ?>" name="observaciones" rows="5" maxlength="2000"
+                      placeholder="Escribe aquí cualquier observación relevante sobre el trabajador (antecedentes, recomendaciones, notas de RRHH, etc.)..."
+                      style="height:auto; padding:12px 14px; resize:vertical; font-family:'DM Sans',sans-serif; line-height:1.5;"><?php echo e($trabajador['observaciones'] ?? ''); ?></textarea>
+<?php echo mensajeError($erroresEdicion, 'observaciones'); ?>
+        </div>
+    </div>
+</section>
 
       </div>
 
