@@ -1678,7 +1678,7 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
               <div>
                 <div class="worker-name"><?php echo htmlspecialchars("$nom $ape")?></div>
                 <div class="worker-id">
-                  <?php echo 'ID: ' . str_pad($id, 4, '0', STR_PAD_LEFT) . ' · ' . htmlspecialchars(generoNombre($t['id_generos'] ?? 0)); ?>
+                  <?php echo 'Folio #' . str_pad($id, 4, '0', STR_PAD_LEFT) . ' · ' . htmlspecialchars(generoNombre($t['id_generos'] ?? 0)); ?>
                 </div>
               </div>
             </div>

@@ -645,9 +645,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
         <div class="edit-identity">
           <div class="edit-avatar"><?php echo e($inicialTrabajador ?: 'TR'); ?></div>
           <div>
-            <div class="edit-name"><?php echo e($nombreCompleto ?: 'Sin nombre'); ?></div>
+            <div class="edit-name"><?php echo e($nombreCompleto ?: 'Sin nombre'); ?><span class="folio" title="Identificador interno del trabajador (referencia para soporte)">Folio #<?php echo str_pad((int)$trabajador['id_trabajador'], 4, '0', STR_PAD_LEFT); ?></span></div>
             <div class="edit-meta">
-              <span class="edit-pill">ID #<?php echo str_pad((int)$trabajador['id_trabajador'], 4, '0', STR_PAD_LEFT); ?></span>
               <span class="edit-pill"><?php echo e($trabajador['numero_documento'] ?? 'Sin documento'); ?></span>
               <span class="edit-pill"><?php echo $estadoTrabajador === 1 ? 'Activo' : 'Inactivo'; ?></span>
             </div>

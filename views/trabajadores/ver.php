@@ -304,7 +304,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
 .status-inactive{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb}
 .status-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
 .profile-body{padding:20px 22px 22px}
-.quick-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.quick-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
 .quick-box{background:var(--content-bg);border:1px solid var(--border);border-radius:14px;padding:13px}
 .quick-label{font-size:10.5px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
 .quick-value{font-size:14px;font-weight:700;color:var(--text);line-height:1.25}
@@ -653,7 +653,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
         <div class="profile-identity">
           <div class="worker-avatar-lg"><?php echo e($inicialTrabajador ?: 'TR'); ?></div>
           <div>
-            <div class="worker-main-name"><?php echo e($nombreCompleto ?: 'Sin nombre'); ?></div>
+            <div class="worker-main-name"><?php echo e($nombreCompleto ?: 'Sin nombre'); ?><span class="folio" title="Identificador interno del trabajador (referencia para soporte)">Folio #<?php echo str_pad((int)$trabajador['id_trabajador'], 4, '0', STR_PAD_LEFT); ?></span></div>
             <div class="worker-main-meta">
               <span class="meta-pill"><?php echo e($tipoDocumento); ?></span>
               <span class="meta-pill"><?php echo e($trabajador['numero_documento'] ?? 'Sin documento'); ?></span>
@@ -678,10 +678,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
           <div class="quick-box">
             <div class="quick-label">Cargo</div>
             <div class="quick-value"><?php echo e($trabajador['nombre_cargo'] ?? 'Sin cargo'); ?></div>
-          </div>
-          <div class="quick-box">
-            <div class="quick-label">ID interno</div>
-            <div class="quick-value">#<?php echo str_pad((int)$trabajador['id_trabajador'], 4, '0', STR_PAD_LEFT); ?></div>
           </div>
         </div>
 
