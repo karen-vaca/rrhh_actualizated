@@ -17,6 +17,7 @@ requerirAcceso();
         require_once __DIR__ . '/../../config/conexion.php';
         require_once __DIR__ . '/includes/funciones.php';
 require_once __DIR__ . '/includes/encabezado.php';
+require_once __DIR__ . '/../components/lugares.php';
 require_once __DIR__ . '/includes/pie.php';
 
         use PhpOffice\PhpWord\PhpWord;
@@ -65,6 +66,7 @@ $sql = "SELECT
     t.apellidos,
     t.fecha_nacimiento,
     t.lugar_nacimiento,
+    t.codigo_ciudad_nacimiento,
     t.celular,
     t.correo_personal,
 
@@ -140,7 +142,7 @@ LIMIT 1";
         $idArea = (int)($data['id_areas'] ?? 0);
         $nombreArea     = $data['nombre_area'] ?? 'Sin área';
         $tipoContrato   = $data['tipo_contrato_nombre'] ?? 'Término Indefinido';
-        $lugarNacimiento = $data['lugar_nacimiento'] ?? '';
+        $lugarNacimiento = nombreLugar($conexion, $data['codigo_ciudad_nacimiento'] ?? null) ?: ($data['lugar_nacimiento'] ?? '');
 $fechaNacimiento = formatearFecha($data['fecha_nacimiento'] ?? '');
 
 $celular = $data['celular'] ?? '';
@@ -158,7 +160,7 @@ $jefe = $data['jefe_inmediato'] ?? '';
 $empresa       = $data['nombre_empresa'] ?? 'PLÁSTICOS Y PET DE COLOMBIA S.A.S';
 $representante = 'DEISY PINTO OCAMPO';
 
-$lugarNacimiento = $data['lugar_nacimiento'] ?? '';
+$lugarNacimiento = nombreLugar($conexion, $data['codigo_ciudad_nacimiento'] ?? null) ?: ($data['lugar_nacimiento'] ?? '');
 $fechaNacimiento = formatearFecha($data['fecha_nacimiento'] ?? '');
 $celular         = $data['celular'] ?? '';
 $correo          = $data['correo_personal'] ?? '';

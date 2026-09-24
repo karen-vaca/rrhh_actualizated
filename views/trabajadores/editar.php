@@ -480,6 +480,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
 
 </style>
 <link rel="stylesheet" href="validacion_trabajador.css">
+<link rel="stylesheet" href="../components/select_buscador.css">
+<style>
+/* Folio: el id interno como dato secundario (referencia para soporte y auditoría) */
+.folio{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:500;color:var(--text-soft);letter-spacing:.2px;vertical-align:middle;white-space:nowrap}
+.lugar-revisar{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:2px 8px;vertical-align:middle}
+.nota-campo{font-size:12px;line-height:1.45;color:var(--text-soft)}
+.nota-campo strong{color:var(--text-mid)}
+</style>
 </head>
 
 <body>
@@ -719,11 +727,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
 <?php echo mensajeError($erroresEdicion, 'fecha_nacimiento'); ?>
             </div>
 
-            <div class="edit-field">
-              <label class="edit-label">Lugar de nacimiento</label>
-              <input class="edit-input<?php echo claseError($erroresEdicion, 'lugar_nacimiento'); ?>" type="text" name="lugar_nacimiento" value="<?php echo e($trabajador['lugar_nacimiento'] ?? ''); ?>" placeholder="Ej. Tunja, Boyacá">
-<?php echo mensajeError($erroresEdicion, 'lugar_nacimiento'); ?>
+            <?php
+              // Lugar de nacimiento: departamento + ciudad (DIVIPOLA). Si se reenvía tras un error, se respeta lo elegido.
+              echo camposLugarHtml(
+                  $conexion,
+                  ['departamento' => 'departamento_nacimiento', 'ciudad' => 'ciudad_nacimiento', 'etiqueta' => 'Lugar de nacimiento'],
+                  $trabajador['ciudad_nacimiento'] ?? ($trabajador['codigo_ciudad_nacimiento'] ?? null),
+                  $trabajador['departamento_nacimiento'] ?? null,
+                  $erroresEdicion,
+                  ['grupo' => 'edit-field', 'label' => 'edit-label', 'select' => 'edit-select']
+              );
+            ?>
+            <?php if (empty($trabajador['codigo_ciudad_nacimiento']) && trim((string)($trabajador['lugar_nacimiento'] ?? '')) !== ''): ?>
+            <div class="edit-field full nota-campo">
+              <span class="lugar-revisar">Por revisar</span> Antes se escribió como texto: <strong>"<?php echo e($trabajador['lugar_nacimiento']); ?>"</strong>. Elige el departamento y la ciudad para corregirlo; mientras no lo hagas, ese texto se conserva.
             </div>
+            <?php endif; ?>
 
 
             <div class="edit-field">
@@ -1101,6 +1120,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 toggleNumeroHijos();
 </script>
+<?php echo scriptCiudadesPorDepartamento($conexion); ?>
+<script src="../components/select_buscador.js"></script>
+<script src="../components/lugares.js"></script>
 <script src="validacion_trabajador.js"></script>
 </body>
 </html>

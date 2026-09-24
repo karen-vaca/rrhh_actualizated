@@ -1,0 +1,10 @@
+/* Select con buscador (select_buscador.js) */
+.sb{position:relative}
+.sb-input{width:100%;padding-right:30px !important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238aab96' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='21' y1='21' x2='16.5' y2='16.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center}
+.sb-input:disabled{opacity:.6;cursor:not-allowed}
+.sb-select-oculto{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0,0,0,0) !important;border:0 !important;opacity:0}
+.sb-lista{position:absolute;z-index:60;left:0;right:0;top:calc(100% + 4px);max-height:240px;overflow-y:auto;margin:0;padding:4px;list-style:none;background:#fff;border:1px solid #e0ebe4;border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.09)}
+.sb-lista li{padding:8px 10px;border-radius:7px;font-size:13px;color:#0d1f11;cursor:pointer}
+.sb-lista li.activa,.sb-lista li:hover{background:rgba(45,223,110,.12)}
+.sb-lista li[aria-selected="true"]{font-weight:600}
+.sb-lista li.sb-vacio{color:#8aab96;cursor:default;background:none}

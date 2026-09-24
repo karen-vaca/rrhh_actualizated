@@ -456,6 +456,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
 }
 
 </style>
+<style>
+/* Folio: el id interno como dato secundario (referencia para soporte y auditoría) */
+.folio{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:500;color:var(--text-soft);letter-spacing:.2px;vertical-align:middle;white-space:nowrap}
+.lugar-revisar{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:2px 8px;vertical-align:middle}
+.nota-campo{font-size:12px;line-height:1.45;color:var(--text-soft)}
+.nota-campo strong{color:var(--text-mid)}
+</style>
 </head>
 
 <body>
@@ -694,7 +701,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
                 <div class="info-item"><div class="info-label">Número documento</div><div class="info-value"><?php echo e(dato($trabajador['numero_documento'] ?? '')); ?></div></div>
                 <div class="info-item"><div class="info-label">Género</div><div class="info-value"><?php echo e(dato($trabajador['genero_nombre'] ?? '')); ?></div></div>
                 <div class="info-item"><div class="info-label">Fecha nacimiento</div><div class="info-value"><?php echo e(dato(formatoFecha($trabajador['fecha_nacimiento'] ?? ''))); ?></div></div>
-                <div class="info-item"><div class="info-label">Lugar nacimiento</div><div class="info-value"><?php echo e(dato($trabajador['lugar_nacimiento'] ?? '')); ?></div></div>
+                <div class="info-item"><div class="info-label">Lugar nacimiento</div><div class="info-value"><?php
+                  $lugarCatalogo = nombreLugar($conexion, $trabajador['codigo_ciudad_nacimiento'] ?? null);
+                  if ($lugarCatalogo !== '') {
+                      echo e($lugarCatalogo);
+                  } elseif (trim((string)($trabajador['lugar_nacimiento'] ?? '')) !== '') {
+                      echo e($trabajador['lugar_nacimiento']) . ' <span class="lugar-revisar" title="Dato antiguo en texto libre: elige departamento y ciudad en Editar">Por revisar</span>';
+                  } else {
+                      echo 'Sin registrar';
+                  }
+                ?></div></div>
                 <div class="info-item"><div class="info-label">Nacionalidad</div><div class="info-value"><?php echo e($nacionalidad); ?></div></div>
                 <div class="info-item"><div class="info-label">Estado civil</div><div class="info-value"><?php echo e($estadoCivil); ?></div></div>
                 <div class="info-item"><div class="info-label">Grupo étnico</div><div class="info-value"><?php echo e($grupoEtnico); ?></div></div>

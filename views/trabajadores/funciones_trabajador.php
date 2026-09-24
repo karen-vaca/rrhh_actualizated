@@ -3,6 +3,8 @@
 // validarTrabajador() es la única fuente de reglas del backend: la usan crear.php
 // y actualizar.php, y la cubren los tests de tests/ValidacionTrabajadorTest.php.
 
+require_once __DIR__ . '/../components/lugares.php';
+
 // Edad mínima y máxima para registrar un trabajador.
 const EDAD_MINIMA_TRABAJADOR = 18;
 const EDAD_MAXIMA_TRABAJADOR = 80;
@@ -240,10 +242,16 @@ function validarTrabajador(PDO $conexion, array $in, ?int $idActual = null, bool
         $errores['fecha_nacimiento'] = 'La fecha de nacimiento indica más de ' . EDAD_MAXIMA_TRABAJADOR . ' años. Revisa el año.';
     }
 
-    // ── Lugar de nacimiento ──
-    $datos['lugar_nacimiento'] = $txt('lugar_nacimiento');
-    if (mb_strlen($datos['lugar_nacimiento'], 'UTF-8') > 100) {
-        $errores['lugar_nacimiento'] = 'El lugar de nacimiento no puede superar 100 caracteres.';
+    // ── Lugar de nacimiento: departamento + ciudad del catálogo DIVIPOLA (opcional) ──
+    // Deben ir juntos y ser coherentes (no una ciudad de otro departamento). Si se elige
+    // una ciudad, se borra el texto libre antiguo (que solo marcaba "por revisar"); si no
+    // se elige nada, el texto antiguo se conserva tal cual.
+    $lugar = validarLugar($conexion, $in['departamento_nacimiento'] ?? '', $in['ciudad_nacimiento'] ?? '',
+                          'departamento_nacimiento', 'ciudad_nacimiento');
+    $errores += $lugar['errores'];
+    if ($lugar['codigo']) {
+        $datos['codigo_ciudad_nacimiento'] = $lugar['codigo'];
+        $datos['lugar_nacimiento'] = null;
     }
 
     // ── Área / Cargo (el cargo debe pertenecer al área) ──

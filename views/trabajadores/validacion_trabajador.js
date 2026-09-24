@@ -119,8 +119,12 @@
       return '';
     },
 
-    lugar_nacimiento: function (v) {
-      return limpio(v).length > 100 ? 'El lugar de nacimiento no puede superar 100 caracteres.' : '';
+    // Lugar de nacimiento (opcional): departamento y ciudad van juntos.
+    departamento_nacimiento: function (v, form) {
+      return !v && form.elements.ciudad_nacimiento && form.elements.ciudad_nacimiento.value ? 'Selecciona el departamento.' : '';
+    },
+    ciudad_nacimiento: function (v, form) {
+      return !v && form.elements.departamento_nacimiento && form.elements.departamento_nacimiento.value ? 'Selecciona la ciudad o municipio.' : '';
     },
 
     correo_personal: function (v) {
@@ -247,8 +251,9 @@
           cuerpo.insertBefore(resumen, cuerpo.firstChild);
         }
         resumen.textContent = 'Revisa ' + (total === 1 ? 'el campo marcado' : 'los ' + total + ' campos marcados') + ' antes de guardar.';
-        primero.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        primero.focus({ preventScroll: true });
+        const visible = (primero.closest && primero.closest('.sb') && primero.closest('.sb').querySelector('.sb-input')) || primero;
+        visible.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        visible.focus({ preventScroll: true });
       } else if (resumen) {
         resumen.remove();
       }
