@@ -1,2 +1,7 @@
 .env
 vendor/  
+db/respaldos/
+
+# Documentos generados y soportes subidos: contienen datos personales, no van al repositorio
+expedientes/
+uploads/

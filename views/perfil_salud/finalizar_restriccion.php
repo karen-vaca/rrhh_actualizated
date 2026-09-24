@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirPost();
+requerirAcceso(); // valida sesión, rol y token CSRF
 /**
  * ============================================================================
  *  ACCIÓN: Finalizar restricción médica
@@ -19,8 +22,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once __DIR__ . '/../../config/conexion.php';
 
-$idRestriccion = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-$idTrabajador  = isset($_GET['trabajador']) ? (int)$_GET['trabajador'] : 0;
+$idRestriccion = (int)($_POST['id'] ?? 0);
+$idTrabajador  = (int)($_POST['trabajador'] ?? 0);
 
 if ($idRestriccion <= 0 || $idTrabajador <= 0) {
     header('Location: index.php?mensaje=' . urlencode('Identificador inválido.') . '&tipo=error');

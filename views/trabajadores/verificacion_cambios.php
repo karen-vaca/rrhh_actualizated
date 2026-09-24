@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 // verificacion_cambios.php
 require_once '../../config/conexion.php';
 

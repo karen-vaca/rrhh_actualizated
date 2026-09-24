@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../config/auth.php';
+soloConsola();
 require __DIR__ . '/../config/conexion.php';
 
 echo "Conexión OK\n";

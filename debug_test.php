@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/config/auth.php';
+soloConsola();
 // Archivo de diagnóstico. No toca la conexión ni la lógica.
 header('Content-Type: text/html; charset=utf-8');
 ?>

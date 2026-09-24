@@ -1,12 +1,10 @@
  <?php
-session_start();
-if (!isset($_SESSION['logueado']) || !$_SESSION['logueado']) {
-    header("Location: ../../index.php"); exit();
-}
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso(ROLES_CUALQUIER_USUARIO);
 $nombres  = $_SESSION['nombres']   ?? 'Usuario';
 $apellidos= $_SESSION['apellidos'] ?? '';
 $id_roles = $_SESSION['id_roles']  ?? 0;
-$rol_nombre = match((int)$id_roles){1=>'Administrador',2=>'Recursos Humanos',3=>'SST',default=>'Empleado'};
+$rol_nombre = $_SESSION['rol_nombre'] ?? 'Sin rol';
 $inicial = strtoupper(mb_substr($nombres,0,1));
 $meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 $fecha_hoy = date('d').' de '.$meses[(int)date('m')-1].' de '.date('Y');

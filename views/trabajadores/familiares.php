@@ -1,10 +1,19 @@
 <?php
-session_start();
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require_once '../../config/conexion.php';
 
 header('Content-Type: application/json');
 
 $action = $_POST['action'] ?? $_GET['action'] ?? '';
+
+// Solo 'listar' se permite por GET; agregar/editar/eliminar exigen POST (y requerirAcceso ya validó el token CSRF).
+if ($action !== 'listar') {
+    requerirPost();
+}
 $trabajador_id = (int)($_POST['trabajador_id'] ?? $_GET['trabajador_id'] ?? 0);
 
 if ($trabajador_id <= 0) {

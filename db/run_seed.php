@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../config/auth.php';
+soloConsola();
 // Ejecuta db/seed_generos_areas_cargo.sql usando la conexión del proyecto
 require __DIR__ . '/../config/conexion.php';
 

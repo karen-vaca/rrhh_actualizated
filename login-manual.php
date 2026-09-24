@@ -20,14 +20,21 @@ if ($usuario === '' || $contrasena === '') {
 }
 
 try {
+    // Nombre real del usuario (desde el trabajador vinculado) y nombre del rol
+    // tal como está en la tabla roles.
     $sql = "SELECT 
-                id_usuario,
-                usuario,
-                contrasena,
-                id_roles,
-                id_trabajador
-            FROM usuarios
-            WHERE usuario = :usuario
+                u.id_usuario,
+                u.usuario,
+                u.contrasena,
+                u.id_roles,
+                u.id_trabajador,
+                r.nombre_rol,
+                t.nombres,
+                t.apellidos
+            FROM usuarios u
+            LEFT JOIN roles r ON r.id_roles = u.id_roles
+            LEFT JOIN trabajadores t ON t.id_trabajador = u.id_trabajador
+            WHERE u.usuario = :usuario
             LIMIT 1";
 
     $stmt = $conexion->prepare($sql);
@@ -58,23 +65,21 @@ try {
         exit();
     }
 
+    // Nuevo id de sesión al autenticarse (evita fijación de sesión).
+    session_regenerate_id(true);
     $_SESSION['logueado'] = true;
     $_SESSION['id_usuario'] = $user['id_usuario'];
     $_SESSION['usuario'] = $user['usuario'];
     $_SESSION['id_roles'] = $user['id_roles'];
     $_SESSION['id_trabajador'] = $user['id_trabajador'];
 
-    // Datos para el topbar del dashboard
-    $_SESSION['nombres'] = 'Paola Andrea';
-    $_SESSION['nombre'] = 'Paola Andrea';
-    $_SESSION['apellidos'] = 'Franco';
+    // Datos para la barra superior: los del usuario que inició sesión.
+    // Si el usuario no está vinculado a un trabajador, se muestra su usuario.
+    $_SESSION['nombres'] = trim((string)($user['nombres'] ?? '')) ?: $user['usuario'];
+    $_SESSION['nombre'] = $_SESSION['nombres'];
+    $_SESSION['apellidos'] = trim((string)($user['apellidos'] ?? ''));
 
-    $_SESSION['rol_nombre'] = match ((int)$user['id_roles']) {
-        1 => 'Administrador',
-        2 => 'Recursos Humanos',
-        3 => 'SST',
-        default => 'RRHH'
-    };
+    $_SESSION['rol_nombre'] = $user['nombre_rol'] ?: 'Sin rol';
 
     $_SESSION['rol'] = $_SESSION['rol_nombre'];
 
