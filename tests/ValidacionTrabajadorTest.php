@@ -57,11 +57,11 @@ $base = [
     'numero_documento' => '9990001112',
     'id_generos' => '1',
     'fecha_nacimiento' => $hace('-30 years'),
-    'lugar_nacimiento' => 'Tunja, Boyacá',
+    'departamento_nacimiento' => '15',
+    'ciudad_nacimiento' => '15001',
     'id_nacionalidad' => '1',
     'id_area' => (string)$cargoValido['id_area'],
     'id_cargo' => (string)$cargoValido['id_cargo'],
-    'estado' => '1',
     'fecha_ingreso' => $hace('-1 year'),
     'correo_personal' => 'prueba.validacion.unica@gmail.com',
     'telefono' => '300 123 4567',
@@ -199,7 +199,6 @@ prueba('catálogos sin columna "orden" siguen ordenados por id (EPS)', function 
 });
 prueba('texto libre en un catálogo',fn() => tieneError(errores(['id_generos' => 'Femenino']), 'id_generos'));
 prueba('EPS inexistente', fn() => tieneError(errores(['id_eps' => '999']), 'id_eps'));
-prueba('estado laboral fuera de la lista', fn() => tieneError(errores(['estado' => '5']), 'estado'));
 prueba('orientación sexual fuera de la lista', fn() => tieneError(errores(['orientacion_sexual' => 'cualquiera']), 'orientacion_sexual'));
 
 // ── Hijos y tallas ──

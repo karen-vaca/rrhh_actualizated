@@ -80,7 +80,6 @@
     id_grupos_etnicos: requerido('Selecciona un grupo étnico válido.'),
     id_area: requerido('Selecciona un área válida.'),
     id_cargo: requerido('Selecciona un cargo.'),
-    estado: requerido('Selecciona un estado laboral válido.'),
     tiene_hijos: requerido('Indica si el trabajador tiene hijos.'),
 
     numero_documento: function (v, form) {

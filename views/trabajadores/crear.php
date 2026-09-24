@@ -104,7 +104,7 @@ try {
         ':gen'                      => $d['id_generos'],
         ':area'                     => $d['id_area'],
         ':cargo'                    => $d['id_cargo'],
-        ':estado'                   => $d['estado'],
+        ':estado'                   => 1, // todo trabajador nuevo queda Activo
         ':fecha_ingreso'            => $d['fecha_ingreso'],
         ':formacion'                => $d['id_formacion_educativa'],
         ':nacionalidad'             => $d['id_nacionalidad'],

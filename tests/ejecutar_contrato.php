@@ -16,9 +16,23 @@ $antes = $huella();
 $_SERVER['REQUEST_METHOD'] = 'POST';
 $_POST = json_decode(file_get_contents($argv[1]), true) + ['formato' => 'json'];
 
+// Escenario opcional ('__preparar_sql', ej. dejar un trabajador inactivo): se aplica en
+// una transacción que se deshace al final. Si guardar.php intentara escribir, fallaría
+// al abrir su propia transacción, así que nunca quedan cambios.
+$preparar = $_POST['__preparar_sql'] ?? null;
+unset($_POST['__preparar_sql']);
+if ($preparar) {
+    $conexion->beginTransaction();
+    $conexion->exec($preparar);
+}
+
 ob_start();
 register_shutdown_function(function () use ($huella, $antes) {
+    global $conexion;
     $salida = ob_get_clean();
+    if ($conexion->inTransaction()) {
+        $conexion->rollBack();
+    }
     $pos = strpos($salida, '{');
     $respuesta = $pos !== false ? json_decode(substr($salida, $pos), true) : null;
     echo "\n@@RESULTADO@@" . json_encode([

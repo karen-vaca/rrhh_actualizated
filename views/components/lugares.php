@@ -134,6 +134,39 @@ if (!function_exists('normalizarLugar')) {
     }
 
     /**
+     * Migra el lugar de nacimiento en texto libre a la ciudad del catálogo, para los
+     * trabajadores que aún no tienen ciudad. Solo asigna coincidencias únicas; nunca
+     * borra el texto original. Si ya hay una transacción abierta (tests), la usa.
+     *
+     * @return array{asignados: array, revision: array}
+     */
+    function migrarLugaresNacimiento(PDO $conexion): array {
+        $pendientes = $conexion->query("SELECT id_trabajador, nombres, apellidos, lugar_nacimiento FROM trabajadores
+                                        WHERE codigo_ciudad_nacimiento IS NULL AND TRIM(COALESCE(lugar_nacimiento, '')) <> ''
+                                        ORDER BY id_trabajador")->fetchAll(PDO::FETCH_ASSOC);
+        $asignar = $conexion->prepare('UPDATE trabajadores SET codigo_ciudad_nacimiento = ? WHERE id_trabajador = ? AND codigo_ciudad_nacimiento IS NULL');
+        $resultado = ['asignados' => [], 'revision' => []];
+
+        $propia = !$conexion->inTransaction();
+        if ($propia) {
+            $conexion->beginTransaction();
+        }
+        foreach ($pendientes as $t) {
+            $r = interpretarLugarTexto($conexion, $t['lugar_nacimiento']);
+            if ($r['codigo']) {
+                $asignar->execute([$r['codigo'], $t['id_trabajador']]);
+                $resultado['asignados'][] = $t + ['codigo' => $r['codigo']];
+            } else {
+                $resultado['revision'][] = $t + ['motivo' => $r['motivo']];
+            }
+        }
+        if ($propia) {
+            $conexion->commit();
+        }
+        return $resultado;
+    }
+
+    /**
      * Interpreta un lugar escrito como texto libre ("Tunja", "Tunja, Boyacá"...).
      * Solo asigna una ciudad cuando la coincidencia es única y sin ambigüedad; en
      * cualquier otro caso devuelve el motivo para revisarlo a mano.

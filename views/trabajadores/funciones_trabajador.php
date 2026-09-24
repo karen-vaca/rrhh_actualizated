@@ -272,12 +272,8 @@ function validarTrabajador(PDO $conexion, array $in, ?int $idActual = null, bool
         }
     }
 
-    // ── Estado laboral ──
-    $estado = $txt('estado');
-    if (!in_array($estado, ['0', '1'], true)) {
-        $errores['estado'] = 'Selecciona un estado laboral válido.';
-    }
-    $datos['estado'] = (int)$estado;
+    // El estado laboral NO se toma del formulario: al crear siempre es Activo y solo se
+    // cambia con las acciones activar.php / inactivar.php (POST + CSRF + rol).
 
     // ── Fecha de ingreso (no futura y posterior a nacimiento + edad mínima) ──
     $fechaIng = $txt('fecha_ingreso');

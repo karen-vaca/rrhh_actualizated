@@ -46,9 +46,9 @@ $post = [
     'nombres' => 'Prueba', 'apellidos' => 'Integración Rollback',
     'id_tipos_documentos' => '1', 'numero_documento' => '9990001113',
     'id_generos' => '1', 'fecha_nacimiento' => date('Y-m-d', strtotime('-30 years')),
-    'lugar_nacimiento' => 'Tunja', 'id_nacionalidad' => '1',
+    'departamento_nacimiento' => '15', 'ciudad_nacimiento' => '15001', 'id_nacionalidad' => '1',
     'id_area' => (string)$cargo['id_area'], 'id_cargo' => (string)$cargo['id_cargo'],
-    'estado' => '1', 'fecha_ingreso' => date('Y-m-d', strtotime('-1 year')),
+    'fecha_ingreso' => date('Y-m-d', strtotime('-1 year')),
     'correo_personal' => 'prueba.rollback.plastypet@gmail.com', 'telefono' => '300 123 4567',
     'id_eps' => '4', 'id_formacion_educativa' => '4', 'id_sangre' => '',
     'id_estado_civil' => '1', 'id_grupos_etnicos' => '3', 'orientacion_sexual' => '',
@@ -63,7 +63,8 @@ prueba('crear guarda todos los campos, incluidos fecha de ingreso y estado', fun
     afirmar($r['errores'] === [], 'Errores: ' . json_encode($r['errores'], JSON_UNESCAPED_UNICODE));
     $f = $r['fila'];
     afirmar($f['fecha_ingreso'] === $post['fecha_ingreso'], "fecha_ingreso no se guardó: " . var_export($f['fecha_ingreso'], true));
-    afirmar((int)$f['estado'] === 1, 'estado no se guardó');
+    afirmar((int)$f['estado'] === 1, 'un trabajador nuevo debería quedar Activo');
+    afirmar($f['codigo_ciudad_nacimiento'] === '15001' && $f['lugar_nacimiento'] === null, 'lugar de nacimiento: ' . json_encode([$f['codigo_ciudad_nacimiento'], $f['lugar_nacimiento']]));
     afirmar($f['celular'] === '3001234567', "celular debería guardarse sin espacios: {$f['celular']}");
     afirmar((int)$f['id_eps'] === 4, 'id_eps no coincide');
     afirmar((int)$f['id_grupos_etnicos'] === 3, 'grupo étnico no coincide');

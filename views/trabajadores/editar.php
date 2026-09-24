@@ -931,12 +931,8 @@ Los detalles de familiares (hijos, cónyuge, padres u otros dependientes) podrá
             </div>
 
             <div class="edit-field">
-              <label class="edit-label">Estado laboral</label>
-              <select class="edit-select<?php echo claseError($erroresEdicion, 'estado'); ?>" name="estado" required>
-                <option value="1" <?php echo selectedOpt($estadoTrabajador, 1); ?>>Activo</option>
-                <option value="0" <?php echo selectedOpt($estadoTrabajador, 0); ?>>Inactivo</option>
-              </select>
-<?php echo mensajeError($erroresEdicion, 'estado'); ?>
+              <span class="edit-label">Estado laboral</span>
+              <div class="nota-campo"><strong><?php echo $estadoTrabajador === 1 ? 'Activo' : 'Inactivo'; ?></strong> · se cambia con <?php echo $estadoTrabajador === 1 ? '"Inactivar"' : '"Reactivar"'; ?> desde la ficha del trabajador, no desde este formulario.</div>
             </div>
             <div class="edit-field">
               <label class="edit-label">Fecha de ingreso</label>

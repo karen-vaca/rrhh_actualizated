@@ -14,6 +14,12 @@ $conexion->beginTransaction();
 
 $_SERVER['REQUEST_METHOD'] = 'POST';
 $_POST = json_decode(file_get_contents($archivoPost), true);
+
+// Escenario opcional ('__preparar_sql'), aplicado dentro de la misma transacción que se deshace.
+if (!empty($_POST['__preparar_sql'])) {
+    $conexion->exec($_POST['__preparar_sql']);
+}
+unset($_POST['__preparar_sql']);
 $_SESSION = [];
 
 register_shutdown_function(function () use ($conexion, $accion) {

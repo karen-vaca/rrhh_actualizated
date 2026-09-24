@@ -102,20 +102,33 @@ requerirAcceso();
         return 'Activo';
     }
 
+    // Contratar o renovar exige un trabajador activo. Antes, contratar lo activaba en
+    // silencio; ahora el estado solo cambia desde Trabajadores (activar / inactivar).
+    function exigirTrabajadorActivo(PDO $conexion, ?int $idTrabajador): void {
+        if (!$idTrabajador) {
+            return;
+        }
+        $stmt = $conexion->prepare('SELECT estado FROM trabajadores WHERE id_trabajador = ?');
+        $stmt->execute([$idTrabajador]);
+        $estado = $stmt->fetchColumn();
+        if ($estado !== false && (int)$estado !== 1) {
+            redirectWith('validacion', [
+                'campo' => 'id_trabajador',
+                'texto' => 'El trabajador está inactivo. Reactívalo desde Trabajadores antes de crear o renovar su contrato.',
+            ]);
+        }
+    }
+
     function actualizarTrabajadorDesdeContrato(
         PDO $conexion,
         int $idTrabajador,
         ?int $idArea,
         ?int $idCargo,
-        ?string $fechaIngreso,
-        bool $activarTrabajador = false
+        ?string $fechaIngreso
     ): void {
+        // No toca el estado del trabajador: solo activar.php / inactivar.php lo cambian.
         $sets = [];
         $params = [':id_trabajador' => $idTrabajador];
-
-        if ($activarTrabajador && columnaExiste($conexion, 'trabajadores', 'estado')) {
-            $sets[] = 'estado = 1';
-        }
 
         if ($idArea !== null && columnaExiste($conexion, 'trabajadores', 'id_area')) {
             $sets[] = 'id_area = :id_area';
@@ -330,6 +343,7 @@ requerirAcceso();
         if ($accion === 'nuevo') {
             $data = datosContratoPost();
             validarDatosContrato($data, true);
+            exigirTrabajadorActivo($conexion, $data['id_trabajador']);
 
             $conexion->beginTransaction();
 
@@ -342,8 +356,7 @@ requerirAcceso();
                 (int)$data['id_trabajador'],
                 $data['id_area'],
                 $data['id_cargo'],
-                $data['fecha_ingreso'],
-                true
+                $data['fecha_ingreso']
             );
 
             $conexion->commit();
@@ -372,8 +385,7 @@ requerirAcceso();
                     $idTrabajador,
                     $data['id_area'],
                     $data['id_cargo'],
-                    $data['fecha_ingreso'],
-                    false
+                    $data['fecha_ingreso']
                 );
             }
 
@@ -391,9 +403,10 @@ requerirAcceso();
 
             validarDatosContrato($data, false);
 
-            $conexion->beginTransaction();
-
             $idTrabajador = $data['id_trabajador'] ?: obtenerIdTrabajadorContrato($conexion, $idContrato);
+            exigirTrabajadorActivo($conexion, $idTrabajador);
+
+            $conexion->beginTransaction();
 
             if (!$idTrabajador) {
                 $conexion->rollBack();
@@ -410,8 +423,7 @@ requerirAcceso();
                 $idTrabajador,
                 $data['id_area'],
                 $data['id_cargo'],
-                $data['fecha_ingreso'] ?: $data['fecha_inicio'],
-                true
+                $data['fecha_ingreso'] ?: $data['fecha_inicio']
             );
 
             $conexion->commit();

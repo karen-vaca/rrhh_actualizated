@@ -1112,12 +1112,8 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 
 <div class="form-row">
     <div class="form-group">
-        <label class="form-label">Estado laboral</label>
-        <select class="form-select<?php echo claseError($erroresNuevo, 'estado'); ?>" name="estado" required>
-            <option value="1" <?php echo valorNuevo('estado', '1') === '1' ? 'selected' : ''; ?>>Activo</option>
-            <option value="0" <?php echo valorNuevo('estado', '1') === '0' ? 'selected' : ''; ?>>Inactivo</option>
-        </select>
-        <?php echo mensajeError($erroresNuevo, 'estado'); ?>
+        <span class="form-label">Estado laboral</span>
+        <div class="nota-campo">El trabajador se crea <strong>Activo</strong>. Para desactivarlo después, usa la acción "Desactivar" del listado.</div>
     </div>
 
     <div class="form-group">
