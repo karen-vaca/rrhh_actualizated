@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 /**
  * ============================================================================
  *  MÓDULO: EXÁMENES MÉDICOS (SG-SST)
@@ -24,6 +26,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once __DIR__ . '/../../config/conexion.php';
+require_once __DIR__ . '/servicio_examenes.php';
 
 $nombres    = $_SESSION['nombres'] ?? $_SESSION['nombre'] ?? 'Administrador';
 $apellidos  = $_SESSION['apellidos'] ?? '';
@@ -44,10 +47,10 @@ if (!function_exists('avatarColor')) {
     }
 }
 
-/** Etiqueta legible por tipo de examen */
+/** Etiqueta legible por tipo de examen (catálogo tipo_examen) */
 function tipoExamenLabel(string $tipo): string {
-    $map = ['ingreso' => 'Ingreso', 'periodico' => 'Periódico', 'egreso' => 'Egreso'];
-    return $map[$tipo] ?? ucfirst($tipo);
+    global $tiposExamen;
+    return $tiposExamen[$tipo]['nombre'] ?? ucfirst($tipo);
 }
 
 /** Badge de vencimiento — misma terna oficial warn/ok/urgent (§18.3), ahora
@@ -78,11 +81,14 @@ $tipoFiltro = trim($_GET['tipoExamen'] ?? '');
 $estadoFiltro = trim($_GET['estado'] ?? '');
 
 $examenes = [];
+$tiposExamen = [];
 $vencidos = $porVencer = $realizadosMes = $programados = 0;
 $errorConsulta = null;
 $trabajadoresParaSelect = [];
 
 try {
+    $tiposExamen = tiposExamen($conexion);
+
     /* Trabajadores para el <select> del modal "Programar examen" */
     $trabajadoresParaSelect = $conexion->query("
         SELECT id_trabajador, nombres, apellidos, numero_documento
@@ -98,7 +104,7 @@ try {
         $params[] = "%{$buscar}%"; $params[] = "%{$buscar}%"; $params[] = "%{$buscar}%";
     }
     if ($tipoFiltro !== '') {
-        $where[] = "e.tipo = ?";
+        $where[] = "te.codigo = ?";
         $params[] = $tipoFiltro;
     }
     if ($estadoFiltro !== '') {
@@ -108,10 +114,11 @@ try {
 
     $sql = "
         SELECT
-            e.id_examen, e.id_trabajador, e.tipo, e.fecha_programada,
-            e.fecha_realizado, e.resultado, e.estado,
+            e.id_examenes_medicos AS id_examen, e.id_trabajador, te.codigo AS tipo, e.fecha_programada,
+            e.fecha_realizado, e.resultado, e.estado, e.proxima_fecha, e.concepto_alturas,
             t.nombres, t.apellidos, t.numero_documento
         FROM examenes_medicos e
+        JOIN tipo_examen te ON te.id_examen = e.id_examen
         JOIN trabajadores t ON t.id_trabajador = e.id_trabajador
         WHERE " . implode(' AND ', $where) . "
         ORDER BY
@@ -147,7 +154,7 @@ try {
 
 } catch (PDOException $e) {
     $errorConsulta = 'No fue posible cargar la información de Exámenes Médicos. '
-        . 'Verifica que la tabla examenes_medicos exista (examenes_medicos.sql).';
+        . 'Verifica que se haya ejecutado db/migrate_examenes_medicos.sql.';
     // error_log($e->getMessage());
 }
 ?>
@@ -312,6 +319,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
 @media(max-width:900px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}
   .content{padding:16px;gap:14px}.mini-stats{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}.form-group.full{grid-column:span 1}}
 @media(max-width:640px){thead th:nth-child(2),tbody td:nth-child(2){display:none}}
+.form-help{margin-top:5px;font-size:11.5px;line-height:1.4;color:var(--text-soft)}
 </style>
 </head>
 <body>
@@ -325,7 +333,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section">Principal</div>
-      <a href="../dashboard/index.php" class="nav-item">
+      <a href="../dashboard/dashboard.php" class="nav-item">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Resumen
       </a>
       <div class="nav-section">Gestión</div>
@@ -435,9 +443,9 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
           </div>
           <select class="filter-select" name="tipoExamen">
             <option value="">Todos los tipos</option>
-            <option value="ingreso" <?php echo $tipoFiltro === 'ingreso' ? 'selected' : '' ?>>Ingreso</option>
-            <option value="periodico" <?php echo $tipoFiltro === 'periodico' ? 'selected' : '' ?>>Periódico</option>
-            <option value="egreso" <?php echo $tipoFiltro === 'egreso' ? 'selected' : '' ?>>Egreso</option>
+            <?php foreach ($tiposExamen as $codigo => $t): ?>
+              <option value="<?php echo htmlspecialchars($codigo) ?>" <?php echo $tipoFiltro === $codigo ? 'selected' : '' ?>><?php echo htmlspecialchars($t['nombre']) ?></option>
+            <?php endforeach; ?>
           </select>
           <select class="filter-select" name="estado">
             <option value="">Todos los estados</option>
@@ -488,8 +496,8 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
               <td>
                 <?php if ($e['resultado']): ?>
                   <?php
-                    $map = ['apto' => 'badge-ok', 'restriccion' => 'badge-warn', 'no_apto' => 'badge-urgent'];
-                    $lbl = ['apto' => 'Apto', 'restriccion' => 'Con restricción', 'no_apto' => 'No apto'];
+                    $map = ['apto' => 'badge-ok', 'restriccion' => 'badge-warn', 'no_apto' => 'badge-urgent', 'pendiente' => 'badge-info'];
+                    $lbl = ['apto' => 'Apto', 'restriccion' => 'Con restricción', 'no_apto' => 'No apto', 'pendiente' => 'Pendiente'];
                   ?>
                   <span class="badge-venc <?php echo $map[$e['resultado']] ?>"><?php echo $lbl[$e['resultado']] ?></span>
                 <?php else: ?>
@@ -528,7 +536,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
-          <form class="modal-body" method="POST" action="programar_examen.php">
+          <form class="modal-body" method="POST" action="programar_examen.php"><?php echo campoCsrf(); ?>
             <div class="form-section">
               <div class="form-row">
                 <div class="form-group full">
@@ -545,9 +553,9 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
                 <div class="form-group">
                   <label class="form-label">Tipo de examen</label>
                   <select class="form-select" name="tipo" required>
-                    <option value="ingreso">Ingreso</option>
-                    <option value="periodico" selected>Periódico</option>
-                    <option value="egreso">Egreso</option>
+                    <?php foreach ($tiposExamen as $codigo => $t): ?>
+                      <option value="<?php echo htmlspecialchars($codigo) ?>" <?php echo $codigo === 'periodico' ? 'selected' : '' ?>><?php echo htmlspecialchars($t['nombre']) ?></option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
                 <div class="form-group">
@@ -574,25 +582,36 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           </div>
-          <form class="modal-body" method="POST" action="registrar_resultado.php">
+          <form class="modal-body" method="POST" action="registrar_resultado.php"><?php echo campoCsrf(); ?>
             <input type="hidden" name="id_examen" id="inputIdExamen" value="">
             <div class="form-section">
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label">Fecha de realización</label>
-                  <input class="form-input" type="date" name="fecha_realizado" required>
+                  <input class="form-input" type="date" name="fecha_realizado" required max="<?php echo date('Y-m-d') ?>">
                 </div>
                 <div class="form-group">
                   <label class="form-label">Concepto / Resultado</label>
                   <select class="form-select" name="resultado" required>
-                    <option value="apto">Apto</option>
-                    <option value="restriccion">Apto con restricciones</option>
-                    <option value="no_apto">No apto</option>
+                    <option value="">Seleccione...</option>
+                    <?php foreach (RESULTADOS_EXAMEN as $codigo => $nombre): ?>
+                      <option value="<?php echo $codigo ?>"><?php echo htmlspecialchars($nombre) ?></option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+                <div class="form-group full">
+                  <label class="form-label">Concepto de trabajo en alturas (opcional)</label>
+                  <select class="form-select" name="concepto_alturas">
+                    <option value="">No aplica / no se evaluó</option>
+                    <?php foreach (CONCEPTOS_ALTURAS as $codigo => $nombre): ?>
+                      <option value="<?php echo $codigo ?>"><?php echo htmlspecialchars($nombre) ?></option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
                 <div class="form-group full">
                   <label class="form-label">Próxima fecha de examen (vencimiento)</label>
                   <input class="form-input" type="date" name="proxima_fecha">
+                  <div class="form-help">Si la dejas vacía se calcula automáticamente: 1 año después de la fecha de realización. El examen de retiro no genera próximo examen.</div>
                 </div>
                 <div class="form-group full">
                   <label class="form-label">Observaciones</label>
