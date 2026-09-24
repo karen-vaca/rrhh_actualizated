@@ -297,17 +297,15 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
 .profile-identity{position:relative;z-index:1;display:flex;align-items:center;gap:18px;min-width:0}
 .worker-avatar-lg{width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#021a08;box-shadow:0 14px 30px rgba(0,0,0,.22),0 0 0 1px rgba(255,255,255,.14) inset;flex-shrink:0}
 .worker-main-name{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#fff;letter-spacing:-.7px;line-height:1.05;margin-bottom:8px}
+.worker-main-role{font-size:14px;font-weight:600;color:rgba(255,255,255,.85);margin:-2px 0 10px}
 .worker-main-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.section-nota{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:12.5px;color:var(--text-soft)}
 .meta-pill{border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:600;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.86)}
 .status-pill{position:relative;z-index:1;display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;white-space:nowrap}
 .status-active{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
-.status-inactive{background:#f9fafb;color:#6b7280;border:1px solid #e5e7eb}
+.status-inactive{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
 .status-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
 .profile-body{padding:20px 22px 22px}
-.quick-row{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:18px}
-.quick-box{background:var(--content-bg);border:1px solid var(--border);border-radius:14px;padding:13px}
-.quick-label{font-size:10.5px;color:var(--text-soft);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
-.quick-value{font-size:14px;font-weight:700;color:var(--text);line-height:1.25}
 
 .info-section{background:var(--white);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}
 .info-section + .info-section{margin-top:14px}
@@ -349,7 +347,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
 }
 @media(max-width:680px){
   .profile-hero{align-items:flex-start;flex-direction:column}
-  .quick-row{grid-template-columns:1fr}
   .info-grid{grid-template-columns:1fr}
   .page-title{font-size:26px}
   .profile-info{display:none}
@@ -654,6 +651,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
           <div class="worker-avatar-lg"><?php echo e($inicialTrabajador ?: 'TR'); ?></div>
           <div>
             <div class="worker-main-name"><?php echo e($nombreCompleto ?: 'Sin nombre'); ?><span class="folio" title="Identificador interno del trabajador (referencia para soporte)">Folio #<?php echo str_pad((int)$trabajador['id_trabajador'], 4, '0', STR_PAD_LEFT); ?></span></div>
+            <div class="worker-main-role"><?php
+              $areaCargo = array_filter([$trabajador['nombre_area'] ?? '', $trabajador['nombre_cargo'] ?? ''],
+                  fn($v) => $v !== '' && !in_array($v, ['Sin área', 'Sin cargo'], true));
+              echo $areaCargo ? e(implode(' · ', $areaCargo)) : 'Sin área ni cargo asignados';
+            ?></div>
             <div class="worker-main-meta">
               <span class="meta-pill"><?php echo e($tipoDocumento); ?></span>
               <span class="meta-pill"><?php echo e($trabajador['numero_documento'] ?? 'Sin documento'); ?></span>
@@ -670,16 +672,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
       </div>
 
       <div class="profile-body">
-        <div class="quick-row">
-          <div class="quick-box">
-            <div class="quick-label">Área</div>
-            <div class="quick-value"><?php echo e($trabajador['nombre_area'] ?? 'Sin área'); ?></div>
-          </div>
-          <div class="quick-box">
-            <div class="quick-label">Cargo</div>
-            <div class="quick-value"><?php echo e($trabajador['nombre_cargo'] ?? 'Sin cargo'); ?></div>
-          </div>
-        </div>
 
         <div class="view-grid">
 
@@ -693,9 +685,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
               <div class="info-grid">
                 <div class="info-item"><div class="info-label">Nombres</div><div class="info-value"><?php echo e(dato($trabajador['nombres'] ?? '')); ?></div></div>
                 <div class="info-item"><div class="info-label">Apellidos</div><div class="info-value"><?php echo e(dato($trabajador['apellidos'] ?? '')); ?></div></div>
-                <div class="info-item"><div class="info-label">Tipo documento</div><div class="info-value"><?php echo e($tipoDocumento); ?></div></div>
-                <div class="info-item"><div class="info-label">Número documento</div><div class="info-value"><?php echo e(dato($trabajador['numero_documento'] ?? '')); ?></div></div>
-                <div class="info-item"><div class="info-label">Género</div><div class="info-value"><?php echo e(dato($trabajador['genero_nombre'] ?? '')); ?></div></div>
                 <div class="info-item"><div class="info-label">Fecha nacimiento</div><div class="info-value"><?php echo e(dato(formatoFecha($trabajador['fecha_nacimiento'] ?? ''))); ?></div></div>
                 <div class="info-item"><div class="info-label">Lugar nacimiento</div><div class="info-value"><?php
                   $lugarCatalogo = nombreLugar($conexion, $trabajador['codigo_ciudad_nacimiento'] ?? null);
@@ -720,11 +709,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
               </div>
 
               <div class="info-grid">
-                <div class="info-item"><div class="info-label">Área</div><div class="info-value"><?php echo e($trabajador['nombre_area'] ?? 'Sin área'); ?></div></div>
-                <div class="info-item"><div class="info-label">Cargo</div><div class="info-value"><?php echo e($trabajador['nombre_cargo'] ?? 'Sin cargo'); ?></div></div>
-                <div class="info-item"><div class="info-label">Estado laboral</div><div class="info-value"><?php echo $estadoTrabajador === 1 ? 'Activo' : 'Inactivo'; ?></div></div>
                 <div class="info-item"><div class="info-label">Formación educativa</div><div class="info-value"><?php echo e($formacion); ?></div></div>
+                <div class="info-item"><div class="info-label">Fecha de ingreso</div><div class="info-value"><?php echo e(dato(formatoFecha($trabajador['fecha_ingreso'] ?? ''))); ?></div></div>
               </div>
+              <div class="section-nota">El área, el cargo y el estado se muestran arriba, en el encabezado de la ficha.</div>
             </section>
           </div>
 

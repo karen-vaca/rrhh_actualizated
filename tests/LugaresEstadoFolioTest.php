@@ -267,5 +267,47 @@ prueba('ficha y edición muestran el folio junto al nombre y no hay campo para e
     }
 });
 
+echo "\nFicha del trabajador: cada dato aparece una sola vez\n";
+$fichaT = $conexion->query('SELECT t.numero_documento, a.nombre_area, c.nombre_cargo FROM trabajadores t
+                            JOIN areas a ON a.id_areas = t.id_area JOIN cargos c ON c.id_cargo = t.id_cargo
+                            WHERE t.id_trabajador = 9')->fetch(PDO::FETCH_ASSOC);
+$ficha = (function () {
+    $h = ejecutarComoWeb('views/trabajadores/ver.php', ['id' => '9'], 'GET')['cuerpo'];
+    $i = strpos($h, '<div class="profile-card">');
+    return substr($h, $i, strpos($h, '<footer', $i) - $i);
+})();
+prueba('el encabezado reúne nombre, folio, "Área · Cargo", documento, género y estado', function () use ($ficha, $fichaT) {
+    afirmar(str_contains($ficha, 'Folio #0009'), 'Falta el folio');
+    afirmar(preg_match('/<div class="worker-main-role">\s*' . preg_quote($fichaT['nombre_area'] . ' · ' . $fichaT['nombre_cargo'], '/') . '/u', $ficha) === 1, 'Falta la línea Área · Cargo');
+    afirmar(preg_match_all('/<span class="meta-pill">/', $ficha) === 3, 'Deberían ser 3 etiquetas: tipo, número de documento y género');
+    afirmar(preg_match('/status-pill status-(active|inactive)"/', $ficha) === 1, 'Falta la etiqueta de estado');
+});
+prueba('ya no hay tarjeta aparte de Área / Cargo', fn() => afirmar(!str_contains($ficha, 'quick-row') && !str_contains($ficha, 'quick-box'), 'Sigue la tarjeta de Área / Cargo'));
+prueba('las secciones no repiten lo que ya está en el encabezado', function () use ($ficha) {
+    foreach (['Área', 'Cargo', 'Estado laboral', 'Tipo documento', 'Número documento', 'Género'] as $etiqueta) {
+        afirmar(!str_contains($ficha, 'class="info-label">' . $etiqueta . '<'), "La etiqueta \"$etiqueta\" se repite en una sección");
+    }
+});
+prueba('número de documento, área y cargo aparecen una sola vez en toda la ficha', function () use ($ficha, $fichaT) {
+    $texto = strip_tags($ficha);
+    foreach ([$fichaT['numero_documento'], $fichaT['nombre_area'], $fichaT['nombre_cargo']] as $valor) {
+        afirmar(substr_count($texto, $valor) === 1, "\"$valor\" aparece " . substr_count($texto, $valor) . ' veces');
+    }
+});
+prueba('información laboral: formación y fecha de ingreso, con la nota del encabezado', function () use ($ficha) {
+    $i = strpos($ficha, 'Información laboral');
+    $seccion = substr($ficha, $i, strpos($ficha, '</section>', $i) - $i);
+    afirmar(preg_match_all('/class="info-label">/', $seccion) === 2 && str_contains($seccion, 'Formación educativa') && str_contains($seccion, 'Fecha de ingreso'),
+        'Información laboral debería tener solo Formación educativa y Fecha de ingreso');
+    afirmar(str_contains($seccion, 'El área, el cargo y el estado se muestran arriba'), 'Falta la nota');
+});
+prueba('dos columnas: personal y laboral a la izquierda; contacto, salud y registro a la derecha', function () use ($ficha) {
+    $izq = substr($ficha, strpos($ficha, '<div class="view-grid">'), strpos($ficha, '<div class="side-column">') - strpos($ficha, '<div class="view-grid">'));
+    $der = substr($ficha, strpos($ficha, '<div class="side-column">'));
+    afirmar(str_contains($izq, 'Información personal') && str_contains($izq, 'Información laboral'), 'Columna izquierda incompleta');
+    foreach (['Contacto', 'Salud / SG-SST', 'Registro', 'Trabajador registrado', 'Última actualización'] as $t) {
+        afirmar(str_contains($der, $t), "Falta \"$t\" en la columna derecha");
+    }
+});
 echo "\n" . ($total - $fallos) . " de $total pruebas pasaron.\n";
 exit($fallos > 0 ? 1 : 0);
