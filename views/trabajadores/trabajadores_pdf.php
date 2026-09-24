@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -14,6 +16,7 @@ if (!file_exists($conexionFile)) {
 }
 
 require_once $conexionFile;
+require_once __DIR__ . '/funciones_trabajador.php';
 
 /* =========================
    FUNCIONES
@@ -624,7 +627,7 @@ ksort($areas);
 
                     <td><?= limpiar($t['_genero_nombre']) ?></td>
 
-                    <td><?= limpiar($fechaNacimiento) ?></td>
+                    <td><?= limpiar(formatoFecha($fechaNacimiento)) ?></td>
 
                     <td><?= limpiar($t['_nacionalidad']) ?></td>
 
@@ -645,7 +648,7 @@ ksort($areas);
 
                     <td><?= limpiar($t['_tipo_sangre']) ?></td>
 
-                    <td><?= limpiar($fechaIngreso) ?></td>
+                    <td><?= limpiar(formatoFecha($fechaIngreso)) ?></td>
 
                     <td>
                         <?php if ($t['_estado_laboral'] === 'Activo'): ?>

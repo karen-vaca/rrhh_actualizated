@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -8,6 +10,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once '../../config/conexion.php';
+require_once __DIR__ . '/funciones_trabajador.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -110,6 +113,16 @@ $nombresTrabajador = $trabajador['nombres'] ?? '';
 $apellidosTrabajador = $trabajador['apellidos'] ?? '';
 $nombreCompleto = trim($nombresTrabajador . ' ' . $apellidosTrabajador);
 $inicialTrabajador = inicialesPersona($nombresTrabajador, $apellidosTrabajador);
+// Si actualizar.php rechazó el formulario: errores por campo y datos que se habían enviado.
+['errores' => $erroresEdicion, 'old' => $oldEdicion] = tomarErroresFormulario();
+if ($oldEdicion) {
+    $oldEdicion['celular'] = $oldEdicion['telefono'] ?? '';
+    $trabajador = array_merge($trabajador, $oldEdicion);
+}
+foreach (catalogosTrabajador() as $campo => [$tabla, $idColumna, $nombreColumna]) {
+    $trabajador[$campo] = idCanonico($conexion, $tabla, $idColumna, $nombreColumna, $trabajador[$campo] ?? '');
+}
+
 $estadoTrabajador = (int)($trabajador['estado'] ?? 1);
 
 $tipoDocumento = obtenerCatalogo(
@@ -168,8 +181,8 @@ $grupoEtnico = obtenerCatalogo(
     $trabajador['id_grupos_etnicos'] ?? null
 );
 
-$nombres = $_SESSION['nombres'] ?? $_SESSION['nombre'] ?? 'Karen Paola';
-$apellidos = $_SESSION['apellidos'] ?? 'Vaca Franco';
+$nombres = $_SESSION['nombres'] ?? $_SESSION['nombre'] ?? 'Usuario';
+$apellidos = $_SESSION['apellidos'] ?? '';
 $rol_nombre = $_SESSION['rol_nombre'] ?? $_SESSION['rol'] ?? 'RRHH';
 $inicial = inicialesPersona($nombres, $apellidos);
 
@@ -209,60 +222,15 @@ function checkedOpt($actual, $valor): string {
     return (string)$actual === (string)$valor ? 'checked' : '';
 }
 
-$tiposDocumentos = obtenerOpcionesCatalogo($conexion, 'tipos_documentos', 'id_tipos_documentos', ['nombre_tipo_documento', 'tipo_documento', 'nombre_documento', 'nombre', 'descripcion'], [
-    ['id' => 1, 'nombre' => 'Cédula de ciudadanía'],
-    ['id' => 2, 'nombre' => 'Cédula de extranjería'],
-    ['id' => 3, 'nombre' => 'Pasaporte']
-]);
-
-$generos = obtenerOpcionesCatalogo($conexion, 'generos', 'id_generos', ['nombre', 'genero', 'nombre_genero', 'descripcion'], [
-    ['id' => 1, 'nombre' => 'Femenino'],
-    ['id' => 2, 'nombre' => 'Masculino'],
-    ['id' => 3, 'nombre' => 'Otro']
-]);
-
-$nacionalidades = obtenerOpcionesCatalogo($conexion, 'nacionalidad', 'id_nacionalidad', ['nombre_nacionalidad', 'nacionalidad', 'nombre', 'descripcion'], [
-    ['id' => 1, 'nombre' => 'Colombiana'],
-    ['id' => 2, 'nombre' => 'Venezolano'],
-    ['id' => 3, 'nombre' => 'Otra']
-]);
-
-$formaciones = obtenerOpcionesCatalogo($conexion, 'formacion_educativa', 'id_formacion_educativa', ['nivel_academico', 'formacion_educativa', 'nombre', 'descripcion'], [
-    ['id' => 1, 'nombre' => 'Primaria'],
-    ['id' => 2, 'nombre' => 'Bachiller'],
-    ['id' => 3, 'nombre' => 'Técnico'],
-    ['id' => 4, 'nombre' => 'Tecnólogo'],
-    ['id' => 5, 'nombre' => 'Profesional'],
-    ['id' => 6, 'nombre' => 'Posgrado']
-]);
-
-$tiposSangre = obtenerOpcionesCatalogo($conexion, 'tipos_sangre', 'id_sangre', ['tipo_sangre', 'nombre_sangre', 'nombre', 'descripcion'], [
-    ['id' => 1, 'nombre' => 'O+'], ['id' => 2, 'nombre' => 'O-'], ['id' => 3, 'nombre' => 'A+'], ['id' => 4, 'nombre' => 'A-'],
-    ['id' => 5, 'nombre' => 'B+'], ['id' => 6, 'nombre' => 'B-'], ['id' => 7, 'nombre' => 'AB+'], ['id' => 8, 'nombre' => 'AB-']
-]);
-
-$estadosCiviles = obtenerOpcionesCatalogo($conexion, 'estado_civil', 'id_estado_civil', ['nombre_estado_civil', 'estado_civil', 'nombre', 'descripcion'], [
-    ['id' => 1, 'nombre' => 'Soltero(a)'],
-    ['id' => 2, 'nombre' => 'Casado(a)'],
-    ['id' => 3, 'nombre' => 'Unión libre']
-]);
-
-$gruposEtnicos = obtenerOpcionesCatalogo($conexion, 'grupos_etnicos', 'id_grupos_etnicos', ['nombre_grupo_etnico', 'grupo_etnico', 'nombre', 'descripcion'], [
-    ['id' => 1, 'nombre' => 'No aplica'],
-    ['id' => 2, 'nombre' => 'Indígena'],
-    ['id' => 3, 'nombre' => 'Afrocolombiano'],
-    ['id' => 4, 'nombre' => 'Raizal'],
-    ['id' => 5, 'nombre' => 'Palenquero'],
-    ['id' => 6, 'nombre' => 'ROM / Gitano']
-]);
-
-$epsOpciones = obtenerOpcionesCatalogo($conexion, 'eps', 'id_eps', ['nombre_eps', 'eps', 'nombre', 'descripcion'], [
-    ['id' => 1, 'nombre' => 'Nueva EPS'],
-    ['id' => 2, 'nombre' => 'Sanitas'],
-    ['id' => 3, 'nombre' => 'Sura'],
-    ['id' => 4, 'nombre' => 'Compensar'],
-    ['id' => 5, 'nombre' => 'Famisanar']
-]);
+$opcionesForm = opcionesFormularioTrabajador($conexion);
+$tiposDocumentos = $opcionesForm['id_tipos_documentos'];
+$generos         = $opcionesForm['id_generos'];
+$nacionalidades  = $opcionesForm['id_nacionalidad'];
+$formaciones     = $opcionesForm['id_formacion_educativa'];
+$tiposSangre     = $opcionesForm['id_sangre'];
+$estadosCiviles  = $opcionesForm['id_estado_civil'];
+$gruposEtnicos   = $opcionesForm['id_grupos_etnicos'];
+$epsOpciones     = $opcionesForm['id_eps'];
 
 $areasOpciones = obtenerOpcionesCatalogo(
     $conexion,
@@ -511,6 +479,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
 @media(max-width:700px){.edit-hero{flex-direction:column;align-items:flex-start}.edit-hint{text-align:left;max-width:none}.edit-form-grid{grid-template-columns:1fr}.edit-actions .btn{flex:1}}
 
 </style>
+<link rel="stylesheet" href="validacion_trabajador.css">
 </head>
 
 <body>
@@ -657,11 +626,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
       </div>
     </div>
 
-    <?php if (isset($_GET['mensaje']) && $_GET['mensaje'] === 'doc_duplicado'): ?>
-      <div class="edit-alert">El número de documento ya existe en otro trabajador. Verifica el dato antes de guardar.</div>
+    <?php if ($erroresEdicion): ?>
+      <div class="edit-alert">No se guardaron los cambios. Revisa <?php echo count($erroresEdicion) === 1 ? 'el campo marcado' : 'los ' . count($erroresEdicion) . ' campos marcados'; ?>.</div>
     <?php endif; ?>
 
-    <form action="actualizar.php" method="POST" class="edit-card">
+    <form action="actualizar.php" method="POST" class="edit-card" data-validar-trabajador novalidate><?php echo campoCsrf(); ?>
       <input type="hidden" name="id_trabajador" value="<?php echo (int)$trabajador['id_trabajador']; ?>">
 
       <div class="edit-hero">
@@ -689,9 +658,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
     <div class="edit-form-grid">
         <div class="edit-field full">
             <label class="edit-label">Observaciones adicionales</label>
-            <textarea class="edit-input" name="observaciones" rows="5"
+            <textarea class="edit-input<?php echo claseError($erroresEdicion, 'observaciones'); ?>" name="observaciones" rows="5" maxlength="2000"
                       placeholder="Escribe aquí cualquier observación relevante sobre el trabajador (antecedentes, recomendaciones, notas de RRHH, etc.)..."
                       style="height:auto; padding:12px 14px; resize:vertical; font-family:'DM Sans',sans-serif; line-height:1.5;"><?php echo e($trabajador['observaciones'] ?? ''); ?></textarea>
+<?php echo mensajeError($erroresEdicion, 'observaciones'); ?>
         </div>
     </div>
 </section>
@@ -707,55 +677,63 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
           <div class="edit-form-grid">
             <div class="edit-field">
               <label class="edit-label">Nombres</label>
-              <input class="edit-input" type="text" name="nombres" value="<?php echo e($trabajador['nombres'] ?? ''); ?>" required>
+              <input class="edit-input<?php echo claseError($erroresEdicion, 'nombres'); ?>" type="text" name="nombres" value="<?php echo e($trabajador['nombres'] ?? ''); ?>" required>
+<?php echo mensajeError($erroresEdicion, 'nombres'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Apellidos</label>
-              <input class="edit-input" type="text" name="apellidos" value="<?php echo e($trabajador['apellidos'] ?? ''); ?>" required>
+              <input class="edit-input<?php echo claseError($erroresEdicion, 'apellidos'); ?>" type="text" name="apellidos" value="<?php echo e($trabajador['apellidos'] ?? ''); ?>" required>
+<?php echo mensajeError($erroresEdicion, 'apellidos'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Tipo de documento</label>
-              <select class="edit-select" name="id_tipos_documentos" required>
+              <select class="edit-select<?php echo claseError($erroresEdicion, 'id_tipos_documentos'); ?>" name="id_tipos_documentos" required>
                 <?php foreach ($tiposDocumentos as $op): ?>
                   <option value="<?php echo (int)$op['id']; ?>" <?php echo selectedOpt($trabajador['id_tipos_documentos'] ?? '', $op['id']); ?>><?php echo e($op['nombre']); ?></option>
                 <?php endforeach; ?>
               </select>
+<?php echo mensajeError($erroresEdicion, 'id_tipos_documentos'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Número de documento</label>
-              <input class="edit-input" type="text" name="numero_documento" value="<?php echo e($trabajador['numero_documento'] ?? ''); ?>" required>
+              <input class="edit-input<?php echo claseError($erroresEdicion, 'numero_documento'); ?>" type="text" name="numero_documento" value="<?php echo e($trabajador['numero_documento'] ?? ''); ?>" required>
+<?php echo mensajeError($erroresEdicion, 'numero_documento'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Género</label>
-              <select class="edit-select" name="id_generos" required>
+              <select class="edit-select<?php echo claseError($erroresEdicion, 'id_generos'); ?>" name="id_generos" required>
                 <?php foreach ($generos as $op): ?>
                   <option value="<?php echo (int)$op['id']; ?>" <?php echo selectedOpt($trabajador['id_generos'] ?? '', $op['id']); ?>><?php echo e($op['nombre']); ?></option>
                 <?php endforeach; ?>
               </select>
+<?php echo mensajeError($erroresEdicion, 'id_generos'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Fecha de nacimiento</label>
-              <input class="edit-input" type="date" name="fecha_nacimiento" value="<?php echo e($trabajador['fecha_nacimiento'] ?? ''); ?>">
+              <input class="edit-input<?php echo claseError($erroresEdicion, 'fecha_nacimiento'); ?>" type="date" name="fecha_nacimiento" min="<?php echo fechaMinimaNacimiento(); ?>" max="<?php echo fechaMaximaNacimiento(); ?>" required value="<?php echo e($trabajador['fecha_nacimiento'] ?? ''); ?>">
+<?php echo mensajeError($erroresEdicion, 'fecha_nacimiento'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Lugar de nacimiento</label>
-              <input class="edit-input" type="text" name="lugar_nacimiento" value="<?php echo e($trabajador['lugar_nacimiento'] ?? ''); ?>" placeholder="Ej. Tunja, Boyacá">
+              <input class="edit-input<?php echo claseError($erroresEdicion, 'lugar_nacimiento'); ?>" type="text" name="lugar_nacimiento" value="<?php echo e($trabajador['lugar_nacimiento'] ?? ''); ?>" placeholder="Ej. Tunja, Boyacá">
+<?php echo mensajeError($erroresEdicion, 'lugar_nacimiento'); ?>
             </div>
 
 
             <div class="edit-field">
               <label class="edit-label">Nacionalidad</label>
-              <select class="edit-select" name="id_nacionalidad">
+              <select class="edit-select<?php echo claseError($erroresEdicion, 'id_nacionalidad'); ?>" name="id_nacionalidad">
                 <?php foreach ($nacionalidades as $op): ?>
                   <option value="<?php echo (int)$op['id']; ?>" <?php echo selectedOpt($trabajador['id_nacionalidad'] ?? '', $op['id']); ?>><?php echo e($op['nombre']); ?></option>
                 <?php endforeach; ?>
               </select>
+<?php echo mensajeError($erroresEdicion, 'id_nacionalidad'); ?>
             </div>
           </div>
         </section>
@@ -769,51 +747,51 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
           <div class="edit-form-grid">
             <div class="edit-field">
               <label class="edit-label">Formación educativa</label>
-              <select class="edit-select" name="id_formacion_educativa">
+              <select class="edit-select<?php echo claseError($erroresEdicion, 'id_formacion_educativa'); ?>" name="id_formacion_educativa">
                 <?php foreach ($formaciones as $op): ?>
                   <option value="<?php echo (int)$op['id']; ?>" <?php echo selectedOpt($trabajador['id_formacion_educativa'] ?? '', $op['id']); ?>><?php echo e($op['nombre']); ?></option>
                 <?php endforeach; ?>
               </select>
+<?php echo mensajeError($erroresEdicion, 'id_formacion_educativa'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Tipo de sangre</label>
-              <select class="edit-select" name="id_sangre">
+              <select class="edit-select<?php echo claseError($erroresEdicion, 'id_sangre'); ?>" name="id_sangre">
+                <option value="">Sin información</option>
                 <?php foreach ($tiposSangre as $op): ?>
                   <option value="<?php echo (int)$op['id']; ?>" <?php echo selectedOpt($trabajador['id_sangre'] ?? '', $op['id']); ?>><?php echo e($op['nombre']); ?></option>
                 <?php endforeach; ?>
               </select>
+<?php echo mensajeError($erroresEdicion, 'id_sangre'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Estado civil</label>
-              <select class="edit-select" name="id_estado_civil">
+              <select class="edit-select<?php echo claseError($erroresEdicion, 'id_estado_civil'); ?>" name="id_estado_civil">
                 <?php foreach ($estadosCiviles as $op): ?>
                   <option value="<?php echo (int)$op['id']; ?>" <?php echo selectedOpt($trabajador['id_estado_civil'] ?? '', $op['id']); ?>><?php echo e($op['nombre']); ?></option>
                 <?php endforeach; ?>
               </select>
+<?php echo mensajeError($erroresEdicion, 'id_estado_civil'); ?>
             </div>
 
 <div class="edit-field">
 <label class="edit-label">Grupo étnico</label>
-<select class="edit-select" name="id_grupos_etnicos">
+<select class="edit-select<?php echo claseError($erroresEdicion, 'id_grupos_etnicos'); ?>" name="id_grupos_etnicos">
 <?php foreach ($gruposEtnicos as $op): ?>
 <option value="<?php echo (int)$op['id']; ?>" <?php echo selectedOpt($trabajador['id_grupos_etnicos'] ?? '', $op['id']); ?>><?php echo e($op['nombre']); ?></option>
 <?php endforeach; ?>
 </select>
+<?php echo mensajeError($erroresEdicion, 'id_grupos_etnicos'); ?>
 </div>
 <div class="edit-field full">
 <label class="edit-label">Orientación sexual / Identidad de género</label>
-<select class="edit-select" name="orientacion_sexual">
+<select class="edit-select<?php echo claseError($erroresEdicion, 'orientacion_sexual'); ?>" name="orientacion_sexual">
 <option value="">Seleccionar (opcional)</option>
-<option value="heterosexual" <?php echo selectedOpt($trabajador['orientacion_sexual'] ?? '', 'heterosexual'); ?>>Heterosexual</option>
-<option value="homosexual" <?php echo selectedOpt($trabajador['orientacion_sexual'] ?? '', 'homosexual'); ?>>Homosexual</option>
-<option value="bisexual" <?php echo selectedOpt($trabajador['orientacion_sexual'] ?? '', 'bisexual'); ?>>Bisexual</option>
-<option value="pansexual" <?php echo selectedOpt($trabajador['orientacion_sexual'] ?? '', 'pansexual'); ?>>Pansexual</option>
-<option value="asexual" <?php echo selectedOpt($trabajador['orientacion_sexual'] ?? '', 'asexual'); ?>>Asexual</option>
-<option value="otra" <?php echo selectedOpt($trabajador['orientacion_sexual'] ?? '', 'otra'); ?>>Otra</option>
-<option value="no_especificar" <?php echo selectedOpt($trabajador['orientacion_sexual'] ?? '', 'no_especificar'); ?>>Prefiero no especificar</option>
+<?php echo opcionesSelect($opcionesForm['orientacion_sexual'], $trabajador['orientacion_sexual'] ?? ''); ?>
 </select>
+<?php echo mensajeError($erroresEdicion, 'orientacion_sexual'); ?>
 </div>
 </div>
 </section>
@@ -826,14 +804,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
 <div class="edit-form-grid">
 <div class="edit-field">
 <label class="edit-label">¿Tiene hijos?</label>
-<select class="edit-select" name="tiene_hijos" id="tieneHijos" onchange="toggleNumeroHijos()">
+<select class="edit-select<?php echo claseError($erroresEdicion, 'tiene_hijos'); ?>" name="tiene_hijos" id="tieneHijos" onchange="toggleNumeroHijos()">
 <option value="0" <?php echo selectedOpt($trabajador['tiene_hijos'] ?? '0', '0'); ?>>No</option>
 <option value="1" <?php echo selectedOpt($trabajador['tiene_hijos'] ?? '0', '1'); ?>>Sí</option>
 </select>
+<?php echo mensajeError($erroresEdicion, 'tiene_hijos'); ?>
 </div>
 <div class="edit-field" id="grupoNumeroHijos" style="display:<?php echo ($trabajador['tiene_hijos'] ?? '0') === '1' ? 'flex' : 'none'; ?>">
 <label class="edit-label">Número de hijos</label>
-<input class="edit-input" type="number" name="numero_hijos" id="numeroHijos" min="0" max="20" value="<?php echo e($trabajador['numero_hijos'] ?? ''); ?>" placeholder="0">
+<input class="edit-input<?php echo claseError($erroresEdicion, 'numero_hijos'); ?>" type="number" name="numero_hijos" id="numeroHijos" min="1" max="15" step="1" inputmode="numeric" value="<?php echo e($trabajador['numero_hijos'] ?? ''); ?>" placeholder="0">
+<?php echo mensajeError($erroresEdicion, 'numero_hijos'); ?>
 </div>
 <div class="edit-field full">
 <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px">
@@ -859,18 +839,20 @@ Los detalles de familiares (hijos, cónyuge, padres u otros dependientes) podrá
           <div class="edit-form-grid">
             <div class="edit-field">
               <label class="edit-label">Correo electrónico</label>
-              <input class="edit-input" type="email" name="correo_personal" value="<?php echo e($trabajador['correo_personal'] ?? ''); ?>" placeholder="correo@empresa.com">
+              <input class="edit-input<?php echo claseError($erroresEdicion, 'correo_personal'); ?>" type="email" name="correo_personal" maxlength="100" required value="<?php echo e($trabajador['correo_personal'] ?? ''); ?>" placeholder="correo@empresa.com">
+<?php echo mensajeError($erroresEdicion, 'correo_personal'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Teléfono</label>
-              <input class="edit-input" type="tel" name="telefono" value="<?php echo e($trabajador['celular'] ?? ''); ?>" placeholder="300 000 0000">
+              <input class="edit-input<?php echo claseError($erroresEdicion, 'telefono'); ?>" type="tel" name="telefono" inputmode="numeric" maxlength="14" required value="<?php echo e($trabajador['celular'] ?? ''); ?>" placeholder="3001234567">
+<?php echo mensajeError($erroresEdicion, 'telefono'); ?>
             </div>
 
 <div class="edit-field">
     <label class="edit-label">Área</label>
 
-    <select class="edit-select" id="id_area" name="id_area" required>
+    <select class="edit-select<?php echo claseError($erroresEdicion, 'id_area'); ?>" id="id_area" name="id_area" required>
 
         <option value="">Seleccionar área</option>
 
@@ -893,12 +875,13 @@ Los detalles de familiares (hijos, cónyuge, padres u otros dependientes) podrá
         <?php endwhile; ?>
 
     </select>
+<?php echo mensajeError($erroresEdicion, 'id_area'); ?>
 </div>
 
  <div class="edit-field">
     <label class="edit-label">Cargo</label>
 
-    <select class="edit-select" id="id_cargo" name="id_cargo">
+    <select class="edit-select<?php echo claseError($erroresEdicion, 'id_cargo'); ?>" id="id_cargo" name="id_cargo" required>
         <option value="">Seleccione un cargo</option>
 
         <?php foreach ($cargosArea as $cargo): ?>
@@ -914,24 +897,33 @@ Los detalles de familiares (hijos, cónyuge, padres u otros dependientes) podrá
         <?php endforeach; ?>
 
     </select>
+<?php echo mensajeError($erroresEdicion, 'id_cargo'); ?>
 
 </div>
 
             <div class="edit-field">
               <label class="edit-label">EPS</label>
-              <select class="edit-select" name="id_eps">
+              <select class="edit-select<?php echo claseError($erroresEdicion, 'id_eps'); ?>" name="id_eps" required>
+                <option value=""><?php echo empty($trabajador['id_eps']) ? 'Pendiente de verificar — seleccionar EPS' : 'Seleccionar EPS'; ?></option>
                 <?php foreach ($epsOpciones as $op): ?>
                   <option value="<?php echo (int)$op['id']; ?>" <?php echo selectedOpt($trabajador['id_eps'] ?? '', $op['id']); ?>><?php echo e($op['nombre']); ?></option>
                 <?php endforeach; ?>
               </select>
+<?php echo mensajeError($erroresEdicion, 'id_eps'); ?>
             </div>
 
             <div class="edit-field">
               <label class="edit-label">Estado laboral</label>
-              <select class="edit-select" name="estado">
+              <select class="edit-select<?php echo claseError($erroresEdicion, 'estado'); ?>" name="estado" required>
                 <option value="1" <?php echo selectedOpt($estadoTrabajador, 1); ?>>Activo</option>
                 <option value="0" <?php echo selectedOpt($estadoTrabajador, 0); ?>>Inactivo</option>
               </select>
+<?php echo mensajeError($erroresEdicion, 'estado'); ?>
+            </div>
+            <div class="edit-field">
+              <label class="edit-label">Fecha de ingreso</label>
+              <input class="edit-input<?php echo claseError($erroresEdicion, 'fecha_ingreso'); ?>" type="date" name="fecha_ingreso" max="<?php echo date('Y-m-d'); ?>" required value="<?php echo e($trabajador['fecha_ingreso'] ?? ''); ?>">
+<?php echo mensajeError($erroresEdicion, 'fecha_ingreso'); ?>
             </div>
             <!-- ══════════════════════════════════════════════ -->
 <!-- DOTACIÓN (TALLAS) - Sub-sección visual           -->
@@ -947,7 +939,7 @@ Los detalles de familiares (hijos, cónyuge, padres u otros dependientes) podrá
 
 <div class="edit-field">
     <label class="edit-label">Talla camisa</label>
-    <select class="edit-select" name="talla_camisa">
+    <select class="edit-select<?php echo claseError($erroresEdicion, 'talla_camisa'); ?>" name="talla_camisa">
         <option value="">Seleccionar</option>
         <option value="XS" <?php echo selectedOpt($trabajador['talla_camisa'] ?? '', 'XS'); ?>>XS</option>
         <option value="S" <?php echo selectedOpt($trabajador['talla_camisa'] ?? '', 'S'); ?>>S</option>
@@ -957,22 +949,24 @@ Los detalles de familiares (hijos, cónyuge, padres u otros dependientes) podrá
         <option value="XXL" <?php echo selectedOpt($trabajador['talla_camisa'] ?? '', 'XXL'); ?>>XXL</option>
         <option value="XXXL" <?php echo selectedOpt($trabajador['talla_camisa'] ?? '', 'XXXL'); ?>>XXXL</option>
     </select>
+<?php echo mensajeError($erroresEdicion, 'talla_camisa'); ?>
 </div>
 
 <div class="edit-field">
     <label class="edit-label">Talla pantalón</label>
-    <input class="edit-input" type="text" name="talla_pantalon"
+    <input class="edit-input<?php echo claseError($erroresEdicion, 'talla_pantalon'); ?>" type="text" name="talla_pantalon"
            value="<?php echo e($trabajador['talla_pantalon'] ?? ''); ?>"
            placeholder="Ej. 32, 34, M, L"
            maxlength="10">
+<?php echo mensajeError($erroresEdicion, 'talla_pantalon'); ?>
 </div>
 
 <div class="edit-field">
     <label class="edit-label">Talla botas</label>
-    <input class="edit-input" type="number" name="talla_botas"
+    <input class="edit-input<?php echo claseError($erroresEdicion, 'talla_botas'); ?>" type="text" maxlength="10" name="talla_botas"
            value="<?php echo e($trabajador['talla_botas'] ?? ''); ?>"
-           placeholder="Ej. 39"
-           min="30" max="50" step="1">
+           placeholder="Ej. 39">
+<?php echo mensajeError($erroresEdicion, 'talla_botas'); ?>
 </div>
 
 <div class="edit-field">
@@ -1025,10 +1019,14 @@ function toggleNumeroHijos() {
     if (tieneHijos && grupoNumeroHijos && numeroHijos) {
         if (tieneHijos.value === '1') {
             grupoNumeroHijos.style.display = 'flex';
+            numeroHijos.disabled = false;
             numeroHijos.required = true;
+            if (numeroHijos.value === '0') numeroHijos.value = '';
         } else {
+            // "No": el número de hijos es 0 y no se puede editar (el servidor también lo fuerza a 0).
             grupoNumeroHijos.style.display = 'none';
-            numeroHijos.value = '';
+            numeroHijos.value = '0';
+            numeroHijos.disabled = true;
             numeroHijos.required = false;
         }
     }
@@ -1103,5 +1101,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 toggleNumeroHijos();
 </script>
+<script src="validacion_trabajador.js"></script>
 </body>
 </html>

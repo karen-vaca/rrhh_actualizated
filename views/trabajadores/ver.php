@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -8,6 +10,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 require_once '../../config/conexion.php';
+require_once __DIR__ . '/funciones_trabajador.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -168,8 +171,8 @@ $grupoEtnico = obtenerCatalogo(
     $trabajador['id_grupos_etnicos'] ?? null
 );
 
-$nombres = $_SESSION['nombres'] ?? $_SESSION['nombre'] ?? 'Karen Paola';
-$apellidos = $_SESSION['apellidos'] ?? 'Vaca Franco';
+$nombres = $_SESSION['nombres'] ?? $_SESSION['nombre'] ?? 'Usuario';
+$apellidos = $_SESSION['apellidos'] ?? '';
 $rol_nombre = $_SESSION['rol_nombre'] ?? $_SESSION['rol'] ?? 'RRHH';
 $inicial = inicialesPersona($nombres, $apellidos);
 ?>
@@ -575,6 +578,22 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
   </header>
 
   <div class="content">
+    <?php
+    $avisosFicha = [
+        'actualizado' => 'Los cambios del trabajador se guardaron correctamente.',
+        'reactivado'  => 'El trabajador fue reactivado.',
+        'inactivado'  => 'El trabajador quedó inactivo. No se eliminó de la base de datos.',
+    ];
+    if (empty($trabajador['id_eps'])): ?>
+      <div style="border:1px solid #fde68a;background:#fffbeb;color:#92400e;border-radius:12px;padding:11px 14px;font-size:13px;font-weight:600">
+        EPS pendiente de verificar: el dato guardado no era confiable y se dejó vacío. Confírmalo con el trabajador y regístralo en "Editar".
+      </div>
+    <?php endif;
+    if (isset($avisosFicha[$_GET['mensaje'] ?? ''])): ?>
+      <div style="border:1px solid #bbf7d0;background:#f0fdf4;color:#166534;border-radius:12px;padding:11px 14px;font-size:13px;font-weight:600">
+        <?php echo e($avisosFicha[$_GET['mensaje']]); ?>
+      </div>
+    <?php endif; ?>
 
     <div class="page-header">
       <div class="page-header-left">
@@ -610,7 +629,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
             Inactivar
           </button>
         <?php else: ?>
-          <form action="activar.php" method="POST">
+          <form action="activar.php" method="POST"><?php echo campoCsrf(); ?>
+            <input type="hidden" name="volver" value="ver">
             <input type="hidden" name="id_trabajador" value="<?php echo (int)$trabajador['id_trabajador']; ?>">
             <button class="btn btn-blue" type="submit">
               <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 019-9 9.75 9.75 0 016.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 01-9 9 9.75 9.75 0 01-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
@@ -673,7 +693,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
                 <div class="info-item"><div class="info-label">Tipo documento</div><div class="info-value"><?php echo e($tipoDocumento); ?></div></div>
                 <div class="info-item"><div class="info-label">Número documento</div><div class="info-value"><?php echo e(dato($trabajador['numero_documento'] ?? '')); ?></div></div>
                 <div class="info-item"><div class="info-label">Género</div><div class="info-value"><?php echo e(dato($trabajador['genero_nombre'] ?? '')); ?></div></div>
-                <div class="info-item"><div class="info-label">Fecha nacimiento</div><div class="info-value"><?php echo e(dato($trabajador['fecha_nacimiento'] ?? '')); ?></div></div>
+                <div class="info-item"><div class="info-label">Fecha nacimiento</div><div class="info-value"><?php echo e(dato(formatoFecha($trabajador['fecha_nacimiento'] ?? ''))); ?></div></div>
                 <div class="info-item"><div class="info-label">Lugar nacimiento</div><div class="info-value"><?php echo e(dato($trabajador['lugar_nacimiento'] ?? '')); ?></div></div>
                 <div class="info-item"><div class="info-label">Nacionalidad</div><div class="info-value"><?php echo e($nacionalidad); ?></div></div>
                 <div class="info-item"><div class="info-label">Estado civil</div><div class="info-value"><?php echo e($estadoCivil); ?></div></div>
@@ -712,7 +732,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
                 <div class="section-title">Salud / SG-SST</div>
               </div>
               <div class="info-grid">
-                <div class="info-item"><div class="info-label">EPS</div><div class="info-value"><?php echo e($eps); ?></div></div>
+                <div class="info-item"><div class="info-label">EPS</div><div class="info-value"><?php echo empty($trabajador['id_eps']) ? '<span style="display:inline-block;font-size:11px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:3px 9px">EPS pendiente de verificar</span>' : e($eps); ?></div></div>
                 <div class="info-item"><div class="info-label">Tipo de sangre</div><div class="info-value"><?php echo e($tipoSangre); ?></div></div>
               </div>
             </section>
@@ -725,14 +745,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
                 <div class="record-dot"></div>
                 <div>
                   <div class="record-title">Trabajador registrado</div>
-                  <div class="record-sub"><?php echo e(dato($trabajador['created_at'] ?? '')); ?></div>
+                  <div class="record-sub"><?php echo e(dato(formatoFechaHora($trabajador['created_at'] ?? ''))); ?></div>
                 </div>
               </div>
               <div class="record-item">
                 <div class="record-dot"></div>
                 <div>
                   <div class="record-title">Última actualización</div>
-                  <div class="record-sub"><?php echo e(dato($trabajador['updated_at'] ?? '')); ?></div>
+                  <div class="record-sub"><?php echo e(dato(formatoFechaHora($trabajador['updated_at'] ?? ''))); ?></div>
                 </div>
               </div>
             </section>
@@ -769,7 +789,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
       Solo cambiará su estado a inactivo y podrás reactivarlo después.
     </p>
 
-    <form action="inactivar.php" method="POST" id="formInactivarTrabajador">
+    <form action="inactivar.php" method="POST" id="formInactivarTrabajador"><?php echo campoCsrf(); ?>
+      <input type="hidden" name="volver" value="ver">
       <input type="hidden" name="id_trabajador" id="idTrabajadorInactivar">
 
       <div class="custom-modal-actions">

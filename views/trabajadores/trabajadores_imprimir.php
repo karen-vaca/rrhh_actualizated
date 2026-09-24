@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -14,6 +16,7 @@ if (!file_exists($conexionFile)) {
 }
 
 require_once $conexionFile;
+require_once __DIR__ . '/funciones_trabajador.php';
 
 function limpiar($dato) {
     return htmlspecialchars($dato ?? 'No registrado', ENT_QUOTES, 'UTF-8');
@@ -340,7 +343,7 @@ try {
                         </td>
 
                         <td>
-                            <?= limpiar($t['fecha_ingreso']) ?>
+                            <?= limpiar(formatoFecha($t['fecha_ingreso']) ?: null) ?>
                         </td>
 
                         <td>

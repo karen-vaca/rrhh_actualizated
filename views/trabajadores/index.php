@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -12,6 +14,17 @@ if (!file_exists($conexionFile)) {
     die('Error crítico: no se encontró el archivo de conexión en ' . htmlspecialchars($conexionFile));
 }
 require_once $conexionFile;
+require_once __DIR__ . '/funciones_trabajador.php';
+
+// Formulario "Nuevo trabajador": errores y datos enviados si crear.php lo rechazó.
+['errores' => $erroresNuevo, 'old' => $oldNuevo] = tomarErroresFormulario();
+$opcionesForm = opcionesFormularioTrabajador($conexion);
+$cargosNuevo = cargosDeArea($conexion, $oldNuevo['id_area'] ?? '');
+
+function valorNuevo(string $campo, string $defecto = ''): string {
+    global $oldNuevo;
+    return (string)($oldNuevo[$campo] ?? $defecto);
+}
 
 // =========================
 // DATOS DEL USUARIO EN TOPBAR
@@ -152,11 +165,13 @@ try {
     $stmt->execute();
     $total_mujeres = (int)$stmt->fetchColumn();
 
-    /*
-      Si fecha_ingreso está en otra tabla, por ahora lo dejamos seguro en 0.
-      Más adelante lo conectamos con datos_laborales.
-    */
-    $nuevos_mes = 0;
+    // Nuevos este mes = trabajadores cuya FECHA DE INGRESO cae en el mes calendario
+    // actual (no la fecha en que se creó el registro: cargar hoy a alguien que
+    // ingresó hace años no lo hace "nuevo").
+    $stmt = $conexion->prepare("SELECT COUNT(*) FROM trabajadores
+                                WHERE fecha_ingreso >= :inicio AND fecha_ingreso <= :fin");
+    $stmt->execute([':inicio' => date('Y-m-01'), ':fin' => date('Y-m-t')]);
+    $nuevos_mes = (int)$stmt->fetchColumn();
 } catch (Exception $e) {
     $tw = 0;
     $total_hombres = 0;
@@ -668,6 +683,19 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 .acc-btn:hover{background:var(--bg);border-color:var(--border);color:var(--green-dark)}
 .acc-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
 .acc-btn.danger:hover{background:#fff1f2;border-color:#fecaca;color:#dc2626}
+/* Texto de las acciones (criterio de las action-pill de Bodega2): con espacio se ve
+   el texto junto al ícono; en pantallas más angostas queda solo el ícono, con un
+   tooltip propio que aparece al pasar el mouse y también al llegar con el teclado
+   (el title nativo no hace esto último ni se ve en celular). El nombre accesible
+   siempre lo da aria-label. */
+.acc-btn{position:relative;width:auto;min-width:30px;padding:0 7px;gap:6px}
+.acc-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.acc-btn[data-tip]::after{content:attr(data-tip);position:absolute;right:calc(100% + 6px);top:50%;transform:translateY(-50%);background:#0d1f11;color:#fff;font-size:11px;font-weight:500;line-height:1;padding:6px 8px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:20}
+.acc-btn[data-tip]:hover::after,.acc-btn[data-tip]:focus-visible::after{opacity:1}
+@media(min-width:1600px){
+  .acc-label{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto;font-size:12px;font-weight:500}
+  .acc-btn[data-tip]::after{display:none}
+}
  
 /* ── PAGINATION ── */
 .pagination{padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
@@ -932,6 +960,7 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 }
 
 </style>
+<link rel="stylesheet" href="validacion_trabajador.css">
 </head>
 <body>
 <?php if (isset($_GET['debug']) && $_GET['debug'] === '1') {
@@ -961,67 +990,76 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
       <button class="modal-close" onclick="closeModal()">&#215;</button>
     </div>
 
-<form action="crear.php?prueba=trabajadores" method="POST">      <div class="modal-body">
+<form action="crear.php" method="POST" data-validar-trabajador novalidate><?php echo campoCsrf(); ?>      <div class="modal-body">
+
+        <?php if ($erroresNuevo): ?>
+          <div class="form-errors-summary">
+            No se guardó el trabajador. Revisa <?php echo count($erroresNuevo) === 1 ? 'el campo marcado' : 'los ' . count($erroresNuevo) . ' campos marcados'; ?>.
+          </div>
+        <?php endif; ?>
 
         <div class="form-section">Información personal</div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Nombres</label>
-            <input class="form-input" type="text" name="nombres" placeholder="Ej. María Alejandra" required>
+            <input class="form-input<?php echo claseError($erroresNuevo, 'nombres'); ?>" type="text" name="nombres" maxlength="100" value="<?php echo htmlspecialchars(valorNuevo('nombres')); ?>" placeholder="Ej. María Alejandra" required>
+            <?php echo mensajeError($erroresNuevo, 'nombres'); ?>
           </div>
 
           <div class="form-group">
             <label class="form-label">Apellidos</label>
-            <input class="form-input" type="text" name="apellidos" placeholder="Ej. Torres García" required>
+            <input class="form-input<?php echo claseError($erroresNuevo, 'apellidos'); ?>" type="text" name="apellidos" maxlength="100" value="<?php echo htmlspecialchars(valorNuevo('apellidos')); ?>" placeholder="Ej. Torres García" required>
+            <?php echo mensajeError($erroresNuevo, 'apellidos'); ?>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Tipo de documento</label>
-            <select class="form-select" name="id_tipos_documentos" required>
-              <option value="1">Cédula de ciudadanía</option>
-              <option value="2">Cédula de extranjería</option>
-              <option value="3">Pasaporte</option>
+            <select class="form-select<?php echo claseError($erroresNuevo, 'id_tipos_documentos'); ?>" name="id_tipos_documentos" required>
+              <?php echo opcionesSelect($opcionesForm['id_tipos_documentos'], valorNuevo('id_tipos_documentos')); ?>
             </select>
+            <?php echo mensajeError($erroresNuevo, 'id_tipos_documentos'); ?>
           </div>
 
           <div class="form-group">
             <label class="form-label">Número de documento</label>
-            <input class="form-input" type="text" name="numero_documento" placeholder="Ej. 1.234.567.890" required>
+            <input class="form-input<?php echo claseError($erroresNuevo, 'numero_documento'); ?>" type="text" name="numero_documento" maxlength="20" value="<?php echo htmlspecialchars(valorNuevo('numero_documento')); ?>" placeholder="Ej. 1234567890" required>
+            <?php echo mensajeError($erroresNuevo, 'numero_documento'); ?>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label class="form-label">Género</label>
-            <select class="form-select" name="id_generos" required>
-              <option value="1">Femenino</option>
-              <option value="2">Masculino</option>
-              <option value="3">Otro</option>
+            <select class="form-select<?php echo claseError($erroresNuevo, 'id_generos'); ?>" name="id_generos" required>
+              <option value="">Seleccionar</option>
+              <?php echo opcionesSelect($opcionesForm['id_generos'], valorNuevo('id_generos')); ?>
             </select>
+            <?php echo mensajeError($erroresNuevo, 'id_generos'); ?>
           </div>
 
           <div class="form-group">
             <label class="form-label">Fecha de nacimiento</label>
-            <input class="form-input" type="date" name="fecha_nacimiento">
+            <input class="form-input<?php echo claseError($erroresNuevo, 'fecha_nacimiento'); ?>" type="date" name="fecha_nacimiento" min="<?php echo fechaMinimaNacimiento(); ?>" max="<?php echo fechaMaximaNacimiento(); ?>" value="<?php echo htmlspecialchars(valorNuevo('fecha_nacimiento')); ?>" required>
+            <?php echo mensajeError($erroresNuevo, 'fecha_nacimiento'); ?>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Lugar de nacimiento</label>
-            <input class="form-input" type="text" name="lugar_nacimiento" placeholder="Ej. Tunja, Boyacá">
+            <label class="form-label">Lugar de nacimiento <span style="font-weight:400;color:var(--text-soft)">(opcional)</span></label>
+            <input class="form-input<?php echo claseError($erroresNuevo, 'lugar_nacimiento'); ?>" type="text" name="lugar_nacimiento" maxlength="100" value="<?php echo htmlspecialchars(valorNuevo('lugar_nacimiento')); ?>" placeholder="Ej. Tunja, Boyacá">
+            <?php echo mensajeError($erroresNuevo, 'lugar_nacimiento'); ?>
           </div>
 
           <div class="form-group">
             <label class="form-label">Nacionalidad</label>
-            <select class="form-select" name="id_nacionalidad">
-              <option value="1">Colombiana</option>
-              <option value="2">Venezolana</option>
-              <option value="3">Otra</option>
+            <select class="form-select<?php echo claseError($erroresNuevo, 'id_nacionalidad'); ?>" name="id_nacionalidad" required>
+              <?php echo opcionesSelect($opcionesForm['id_nacionalidad'], valorNuevo('id_nacionalidad')); ?>
             </select>
+            <?php echo mensajeError($erroresNuevo, 'id_nacionalidad'); ?>
           </div>
         </div>
 
@@ -1032,161 +1070,129 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 <div class="form-section" style="margin-top:6px">Información laboral</div>
 
 <div class="form-row">
-
     <div class="form-group">
         <label class="form-label">Área</label>
-
-        <select class="form-select" id="id_area" name="id_area" required>
-
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_area'); ?>" id="id_area" name="id_area" required>
             <option value="">Seleccionar área</option>
-
-            <?php
-            $stmtAreas = $conexion->query("
-                SELECT id_areas, nombre_area
-                FROM areas
-                ORDER BY nombre_area
-            ");
-
-            while($area = $stmtAreas->fetch(PDO::FETCH_ASSOC)):
-            ?>
-
-                <option value="<?= $area['id_areas']; ?>">
-                    <?= htmlspecialchars($area['nombre_area']); ?>
-                </option>
-
-            <?php endwhile; ?>
-
+            <?php echo opcionesSelect($opcionesForm['id_area'], valorNuevo('id_area')); ?>
         </select>
-
+        <?php echo mensajeError($erroresNuevo, 'id_area'); ?>
     </div>
 
     <div class="form-group">
         <label class="form-label">Cargo</label>
-
-        <select class="form-select" id="id_cargo" name="id_cargo" required>
-            <option value="">Seleccione primero un área</option>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_cargo'); ?>" id="id_cargo" name="id_cargo" required>
+            <?php if ($cargosNuevo): ?>
+                <option value="">Seleccionar cargo</option>
+                <?php echo opcionesSelect($cargosNuevo, valorNuevo('id_cargo')); ?>
+            <?php else: ?>
+                <option value="">Seleccione primero un área</option>
+            <?php endif; ?>
         </select>
-
+        <?php echo mensajeError($erroresNuevo, 'id_cargo'); ?>
     </div>
-
 </div>
 
 <div class="form-row">
     <div class="form-group">
         <label class="form-label">Estado laboral</label>
-        <select class="form-select" name="estado" required>
-            <option value="1">Activo</option>
-            <option value="0">Inactivo</option>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'estado'); ?>" name="estado" required>
+            <option value="1" <?php echo valorNuevo('estado', '1') === '1' ? 'selected' : ''; ?>>Activo</option>
+            <option value="0" <?php echo valorNuevo('estado', '1') === '0' ? 'selected' : ''; ?>>Inactivo</option>
         </select>
+        <?php echo mensajeError($erroresNuevo, 'estado'); ?>
     </div>
 
     <div class="form-group">
         <label class="form-label">Fecha de ingreso</label>
-        <input class="form-input" type="date" name="fecha_ingreso" required>
+        <input class="form-input<?php echo claseError($erroresNuevo, 'fecha_ingreso'); ?>" type="date" name="fecha_ingreso" max="<?php echo date('Y-m-d'); ?>" value="<?php echo htmlspecialchars(valorNuevo('fecha_ingreso')); ?>" required>
+        <?php echo mensajeError($erroresNuevo, 'fecha_ingreso'); ?>
     </div>
 </div>
 
 <div class="form-row">
     <div class="form-group">
         <label class="form-label">Correo electrónico</label>
-        <input class="form-input" type="email" name="correo_personal"
-               placeholder="correo@empresa.com">
+        <input class="form-input<?php echo claseError($erroresNuevo, 'correo_personal'); ?>" type="email" name="correo_personal" maxlength="100"
+               value="<?php echo htmlspecialchars(valorNuevo('correo_personal')); ?>"
+               placeholder="correo@empresa.com" required>
+        <?php echo mensajeError($erroresNuevo, 'correo_personal'); ?>
     </div>
 
     <div class="form-group">
         <label class="form-label">Teléfono / Celular</label>
-        <input class="form-input" type="tel" name="telefono"
-               placeholder="300 000 0000">
+        <input class="form-input<?php echo claseError($erroresNuevo, 'telefono'); ?>" type="tel" name="telefono" inputmode="numeric" maxlength="14"
+               value="<?php echo htmlspecialchars(valorNuevo('telefono')); ?>"
+               placeholder="3001234567" required>
+        <?php echo mensajeError($erroresNuevo, 'telefono'); ?>
     </div>
 </div>
 
 <div class="form-row">
     <div class="form-group">
         <label class="form-label">EPS</label>
-        <select class="form-select" name="id_eps">
-            <option value="1">Nueva EPS</option>
-            <option value="2">Sanitas</option>
-            <option value="3">Sura</option>
-            <option value="4">Compensar</option>
-            <option value="5">Famisanar</option>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_eps'); ?>" name="id_eps" required>
+            <option value="">Seleccionar EPS</option>
+            <?php echo opcionesSelect($opcionesForm['id_eps'], valorNuevo('id_eps')); ?>
         </select>
+        <?php echo mensajeError($erroresNuevo, 'id_eps'); ?>
     </div>
 
     <div class="form-group">
         <!-- celda vacía para mantener el grid de 2 columnas -->
     </div>
 </div>
- 
+
  <div class="form-section" style="margin-top:6px">Información complementaria</div>
 
 <div class="form-row">
     <div class="form-group">
         <label class="form-label">Formación educativa</label>
-        <select class="form-select" name="id_formacion_educativa">
-            <option value="1">Primaria</option>
-            <option value="2">Bachiller</option>
-            <option value="3">Técnico</option>
-            <option value="4">Tecnólogo</option>
-            <option value="5">Profesional</option>
-            <option value="6">Posgrado</option>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_formacion_educativa'); ?>" name="id_formacion_educativa" required>
+            <option value="">Seleccionar</option>
+            <?php echo opcionesSelect($opcionesForm['id_formacion_educativa'], valorNuevo('id_formacion_educativa')); ?>
         </select>
+        <?php echo mensajeError($erroresNuevo, 'id_formacion_educativa'); ?>
     </div>
 
-<div class="form-group">
-    <label class="form-label">Tipo de sangre</label>
-    <select class="form-select" name="id_sangre">
-        <option value="1">O+</option>
-        <option value="2">O-</option>
-        <option value="3">A+</option>
-        <option value="4">A-</option>
-        <option value="5">B+</option>
-        <option value="6">B-</option>
-        <option value="7">AB+</option>
-        <option value="8">AB-</option>
-    </select>
-</div>
-
+    <div class="form-group">
+        <label class="form-label">Tipo de sangre <span style="font-weight:400;color:var(--text-soft)">(opcional)</span></label>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_sangre'); ?>" name="id_sangre">
+            <option value="">Sin información</option>
+            <?php echo opcionesSelect($opcionesForm['id_sangre'], valorNuevo('id_sangre')); ?>
+        </select>
+        <?php echo mensajeError($erroresNuevo, 'id_sangre'); ?>
+    </div>
 </div>
 
 <div class="form-row">
     <div class="form-group">
         <label class="form-label">Estado civil</label>
-        <select class="form-select" name="id_estado_civil">
-            <option value="1">Soltero(a)</option>
-            <option value="2">Casado(a)</option>
-            <option value="3">Unión libre</option>
-            <option value="4">Divorciado(a)</option>
-            <option value="5">Viudo(a)</option>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_estado_civil'); ?>" name="id_estado_civil" required>
+            <option value="">Seleccionar</option>
+            <?php echo opcionesSelect($opcionesForm['id_estado_civil'], valorNuevo('id_estado_civil')); ?>
         </select>
+        <?php echo mensajeError($erroresNuevo, 'id_estado_civil'); ?>
     </div>
 
-<div class="form-group">
-    <label class="form-label">Grupo étnico</label>
-    <select class="form-select" name="id_grupos_etnicos">
-        <option value="1">No aplica</option>
-        <option value="2">Indígena</option>
-        <option value="3">Afrocolombiano</option>
-        <option value="4">Raizal</option>
-        <option value="5">Palenquero</option>
-        <option value="6">ROM / Gitano</option>
-    </select>
+    <div class="form-group">
+        <label class="form-label">Grupo étnico</label>
+        <select class="form-select<?php echo claseError($erroresNuevo, 'id_grupos_etnicos'); ?>" name="id_grupos_etnicos" required>
+            <?php echo opcionesSelect($opcionesForm['id_grupos_etnicos'], valorNuevo('id_grupos_etnicos')); ?>
+        </select>
+        <?php echo mensajeError($erroresNuevo, 'id_grupos_etnicos'); ?>
+    </div>
 </div>
 
-</div>
-<!-- NUEVO CAMPO: ORIENTACIÓN SEXUAL -->
+<!-- ORIENTACIÓN SEXUAL (dato sensible: solo se muestra en el formulario y la ficha individual) -->
 <div class="form-row">
 <div class="form-group full">
-<label class="form-label">Orientación sexual / Identidad de género</label>
-<select class="form-select" name="orientacion_sexual">
+<label class="form-label">Orientación sexual / Identidad de género <span style="font-weight:400;color:var(--text-soft)">(opcional)</span></label>
+<select class="form-select<?php echo claseError($erroresNuevo, 'orientacion_sexual'); ?>" name="orientacion_sexual">
 <option value="">Seleccionar (opcional)</option>
-<option value="heterosexual">Heterosexual</option>
-<option value="homosexual">Homosexual</option>
-<option value="bisexual">Bisexual</option>
-<option value="pansexual">Pansexual</option>
-<option value="asexual">Asexual</option>
-<option value="otra">Otra</option>
-<option value="no_especificar">Prefiero no especificar</option>
+<?php echo opcionesSelect($opcionesForm['orientacion_sexual'], valorNuevo('orientacion_sexual')); ?>
 </select>
+<?php echo mensajeError($erroresNuevo, 'orientacion_sexual'); ?>
 </div>
 </div>
 
@@ -1196,14 +1202,16 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 <div class="form-row">
   <div class="form-group">
     <label class="form-label">¿Tiene hijos?</label>
-    <select class="form-select" name="tiene_hijos" id="tieneHijos" onchange="toggleNumeroHijos()">
-      <option value="0">No</option>
-      <option value="1">Sí</option>
+    <select class="form-select<?php echo claseError($erroresNuevo, 'tiene_hijos'); ?>" name="tiene_hijos" id="tieneHijos" onchange="toggleNumeroHijos()" required>
+      <option value="0" <?php echo valorNuevo('tiene_hijos', '0') === '0' ? 'selected' : ''; ?>>No</option>
+      <option value="1" <?php echo valorNuevo('tiene_hijos', '0') === '1' ? 'selected' : ''; ?>>Sí</option>
     </select>
+    <?php echo mensajeError($erroresNuevo, 'tiene_hijos'); ?>
   </div>
   <div class="form-group" id="grupoNumeroHijos" style="display:none">
     <label class="form-label">Número de hijos</label>
-    <input class="form-input" type="number" name="numero_hijos" id="numeroHijos" min="0" max="20" placeholder="0">
+    <input class="form-input<?php echo claseError($erroresNuevo, 'numero_hijos'); ?>" type="number" name="numero_hijos" id="numeroHijos" min="1" max="15" step="1" inputmode="numeric" value="<?php echo htmlspecialchars(valorNuevo('numero_hijos')); ?>" placeholder="1">
+    <?php echo mensajeError($erroresNuevo, 'numero_hijos'); ?>
   </div>
 </div>
 
@@ -1220,32 +1228,31 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 <div class="form-row">
     <div class="form-group">
         <label class="form-label">Talla camisa</label>
-        <select class="form-select" name="talla_camisa">
+        <select class="form-select<?php echo claseError($erroresNuevo, 'talla_camisa'); ?>" name="talla_camisa">
             <option value="">Seleccionar</option>
-            <option value="XS">XS</option>
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-            <option value="XXL">XXL</option>
-            <option value="XXXL">XXXL</option>
+            <?php echo opcionesSelect($opcionesForm['talla_camisa'], valorNuevo('talla_camisa')); ?>
         </select>
+        <?php echo mensajeError($erroresNuevo, 'talla_camisa'); ?>
     </div>
 
     <div class="form-group">
         <label class="form-label">Talla pantalón</label>
-        <input class="form-input" type="text" name="talla_pantalon"
+        <input class="form-input<?php echo claseError($erroresNuevo, 'talla_pantalon'); ?>" type="text" name="talla_pantalon"
+               value="<?php echo htmlspecialchars(valorNuevo('talla_pantalon')); ?>"
                placeholder="Ej. 32, 34, M, L"
                maxlength="10">
+        <?php echo mensajeError($erroresNuevo, 'talla_pantalon'); ?>
     </div>
 </div>
 
 <div class="form-row">
     <div class="form-group">
         <label class="form-label">Talla botas</label>
-        <input class="form-input" type="number" name="talla_botas"
+        <input class="form-input<?php echo claseError($erroresNuevo, 'talla_botas'); ?>" type="text" name="talla_botas"
+               value="<?php echo htmlspecialchars(valorNuevo('talla_botas')); ?>"
                placeholder="Ej. 39"
-               min="30" max="50" step="1">
+               maxlength="10">
+        <?php echo mensajeError($erroresNuevo, 'talla_botas'); ?>
     </div>
     <div class="form-group">
         <!-- celda vacía para mantener el grid de 2 columnas -->
@@ -1263,8 +1270,9 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
     <label class="form-label">Observaciones adicionales</label>
 
     <textarea
-        class="form-input"
+        class="form-input<?php echo claseError($erroresNuevo, 'observaciones'); ?>"
         name="observaciones"
+        maxlength="2000"
         rows="4"
         placeholder="Escribe aquí cualquier observación relevante sobre el trabajador..."
         style="
@@ -1274,7 +1282,8 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
             font-family:'DM Sans',sans-serif;
             width:100%;
         "
-    ></textarea>
+    ><?php echo htmlspecialchars(valorNuevo('observaciones')); ?></textarea>
+    <?php echo mensajeError($erroresNuevo, 'observaciones'); ?>
 </div>
 
 </div>
@@ -1293,6 +1302,9 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
     </form>
   </div>
 </div>
+<form action="inactivar.php" method="POST" id="formInactivarListado" style="display:none"><?php echo campoCsrf(); ?>
+  <input type="hidden" name="id_trabajador" id="idInactivarListado">
+</form>
 <div class="confirm-backdrop" id="modalConfirmarInactivar">
   <div class="confirm-card">
 
@@ -1710,43 +1722,45 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
           <td>
             <div class="acc-btns">
 
-    <a href="ver.php?id=<?php echo $id?>" class="acc-btn" title="Ver">
-      <svg viewBox="0 0 24 24">
+    <a href="ver.php?id=<?php echo $id?>" class="acc-btn" data-tip="Ver detalle" aria-label="Ver detalle">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
         <circle cx="12" cy="12" r="3"/>
-      </svg>
+      </svg><span class="acc-label">Ver detalle</span>
     </a>
 
-    <a href="editar.php?id=<?php echo $id?>" class="acc-btn" title="Editar">
-      <svg viewBox="0 0 24 24">
+    <a href="editar.php?id=<?php echo $id?>" class="acc-btn" data-tip="Editar" aria-label="Editar">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
         <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-      </svg>
+      </svg><span class="acc-label">Editar</span>
     </a>
 
     <?php if ($est === 1): ?>
 
       <button type="button"
               class="acc-btn danger"
-              title="Inactivar trabajador"
+              data-tip="Desactivar" aria-label="Desactivar"
               onclick="confirmarEliminar(<?php echo $id?>,'<?php echo htmlspecialchars($nom . ' ' . $ape, ENT_QUOTES, 'UTF-8')?>')">
-        <svg viewBox="0 0 24 24">
-          <polyline points="3 6 5 6 21 6"/>
-          <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-          <path d="M10 11v6M14 11v6"/>
-        </svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+          <circle cx="8.5" cy="7" r="4"/>
+          <line x1="18" y1="8" x2="23" y2="13"/>
+          <line x1="23" y1="8" x2="18" y2="13"/>
+        </svg><span class="acc-label">Desactivar</span>
       </button>
 
     <?php else: ?>
 
-      <a href="activar.php?id=<?php echo $id?>"
-        class="acc-btn reactivate"
-        title="Reactivar trabajador">
-        <svg viewBox="0 0 24 24">
+      <form action="activar.php" method="POST" style="display:inline"><?php echo campoCsrf(); ?>
+        <input type="hidden" name="id_trabajador" value="<?php echo (int)$id ?>">
+        <button type="submit" class="acc-btn reactivate" data-tip="Reactivar" aria-label="Reactivar">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
           <polyline points="1 4 1 10 7 10"/>
           <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-        </svg>
-      </a>
+        </svg><span class="acc-label">Reactivar</span>
+        </button>
+      </form>
 
     <?php endif; ?>
 
@@ -1835,7 +1849,8 @@ function cerrarModalInactivar() {
 
 function ejecutarInactivar() {
     if (trabajadorInactivarId !== null) {
-        window.location.href = 'inactivar.php?id=' + trabajadorInactivarId;
+        document.getElementById('idInactivarListado').value = trabajadorInactivarId;
+        document.getElementById('formInactivarListado').submit();
     }
 }
 document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();document.querySelector('.search-wrap input').focus()}});
@@ -1935,10 +1950,14 @@ function toggleNumeroHijos() {
     if (tieneHijos && grupoNumeroHijos && numeroHijos) {
         if (tieneHijos.value === '1') {
             grupoNumeroHijos.style.display = 'flex';
+            numeroHijos.disabled = false;
             numeroHijos.required = true;
+            if (numeroHijos.value === '0') numeroHijos.value = '';
         } else {
+            // "No": el número de hijos es 0 y no se puede editar (el servidor también lo fuerza a 0).
             grupoNumeroHijos.style.display = 'none';
-            numeroHijos.value = '';
+            numeroHijos.value = '0';
+            numeroHijos.disabled = true;
             numeroHijos.required = false;
         }
     }
@@ -2055,5 +2074,13 @@ fetch("obtener_cargos.php?id_area=" + idArea)
 
 }
 </script>
+<script src="validacion_trabajador.js"></script>
+<?php if ($erroresNuevo): ?>
+<script>
+// crear.php rechazó el formulario: se reabre con los datos y errores por campo.
+openModal();
+toggleNumeroHijos();
+</script>
+<?php endif; ?>
 </body>
 </html>

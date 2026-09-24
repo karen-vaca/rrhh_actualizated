@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
@@ -13,6 +15,7 @@ if (!file_exists($conexionFile)) {
 }
 
 require_once $conexionFile;
+require_once __DIR__ . '/funciones_trabajador.php';
 
 $sql = "
     SELECT
@@ -212,7 +215,7 @@ function generoNombre($id_genero) {
                     </td>
                     <td><?= limpiar($t['nombre_area']) ?></td>
                     <td><?= limpiar($t['nombre_cargo']) ?></td>
-                    <td><?= limpiar($t['fecha_ingreso']) ?></td>
+                    <td><?= limpiar(formatoFecha($t['fecha_ingreso'])) ?></td>
                     <td>
                         <?php if ((int)$t['estado'] === 1): ?>
                             <span class="estado-activo">Activo</span>
