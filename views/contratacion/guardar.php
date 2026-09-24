@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
     ini_set('display_errors', 0);
     ini_set('display_startup_errors', 0);
     ini_set('log_errors', 1);
@@ -9,6 +11,7 @@
     }
 
     require_once '../../config/conexion.php';
+    require_once __DIR__ . '/validaciones_contrato.php';
 
     if (!isset($conexion) && isset($pdo)) {
         $conexion = $pdo;
@@ -21,9 +24,7 @@
     $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $conexion->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-    // Límite preventivo para evitar errores técnicos de MySQL por valores fuera de rango.
-    // Ajusta este valor si tu empresa maneja salarios superiores.
-    define('MAX_VALOR_MONETARIO', 99999999.99);
+    // MAX_VALOR_MONETARIO (límite de salario/auxilio) se define en validaciones_contrato.php.
 
     function post(string $key, $default = '') {
    return isset($_POST[$key]) ? trim((string)$_POST[$key]) : $default;
@@ -32,33 +33,6 @@
     function postInt(string $key): ?int {
         $value = post($key);
         return $value !== '' ? (int)$value : null;
-    }
-
-    function postMoney(string $key): float {        
-        $raw = trim(post($key, '0'));
-
-        if ($raw === '') {
-            return 0.0;
-        }
-
-        // Permite valores como 1300000, 1.300.000, 1.300.000,50 o 1300000.50.
-        $raw = preg_replace('/[^0-9,.-]/', '', $raw);
-
-        if ($raw === '' || substr_count($raw, '-') > 1 || (strpos($raw, '-') !== false && strpos($raw, '-') !== 0)) {
-            return -1;
-        }
-
-        if (str_contains($raw, ',') && str_contains($raw, '.')) {
-            $value = str_replace('.', '', $raw);
-            $value = str_replace(',', '.', $value);
-        } elseif (str_contains($raw, ',')) {
-            $value = str_replace('.', '', $raw);
-            $value = str_replace(',', '.', $value);
-        } else {
-            $value = $raw;
-        }
-
-        return is_numeric($value) ? (float)$value : -1;
     }
 
     function redirectWith(string $mensaje, array $extra = []): void {
@@ -175,11 +149,26 @@
         return $row ? (int)$row['id_trabajador'] : null;
     }
 
+    // Si alguna validación falla, responde con el mensaje exacto del campo (JSON para
+    // el formulario de nueva contratación, redirección con aviso para editar/renovar).
+    function rechazarValidacion(array $errores): void {
+        $campo = array_key_first($errores);
+        redirectWith('validacion', ['campo' => $campo, 'texto' => $errores[$campo]]);
+    }
+
     function datosContratoPost(): array {
         $idTiposContrato = postInt('id_tipos_contrato');
-        $fechaInicio = post('fecha_inicio');
-        $fechaFin = post('fecha_fin') ?: null;
-        $salarioBase = postMoney('salario_base');
+
+        // Jefe, fechas y montos se validan (nunca se corrigen en silencio).
+        // Ver validaciones_contrato.php.
+        $validacion = validarContratoPost($_POST);
+        if ($validacion['errores']) {
+            rechazarValidacion($validacion['errores']);
+        }
+        $v = $validacion['datos'];
+        $fechaInicio = $v['fecha_inicio'];
+        $fechaFin = $v['fecha_fin'];
+        $salarioBase = $v['salario_base'];
 
         return [
             'id_trabajador' => postInt('id_trabajador'),
@@ -191,9 +180,9 @@
             'fecha_fin' => $fechaFin,
             'fecha_ingreso' => post('fecha_ingreso') ?: $fechaInicio,
             'salario_base' => $salarioBase,
-            'auxilio_transporte' => postMoney('auxilio_transporte'),
+            'auxilio_transporte' => $v['auxilio_transporte'],
             'estado' => estadoContrato($fechaFin),
-            'jefe_inmediato' => post('jefe_inmediato') ?: null,
+            'jefe_inmediato' => $v['jefe_inmediato'],
             'jornada' => post('jornada') ?: 'Completa (46h/sem)',
             'modalidad' => post('modalidad') ?: 'Presencial',
             'periodo_prueba' => post('periodo_prueba') ?: 'Sin periodo',

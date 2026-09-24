@@ -8,7 +8,9 @@ function crearEncabezado($section, $tipoDocumento, $logo)
 
     $header = $section->addHeader();
 
-    if(file_exists($logo))
+    // Solo si es una imagen válida: un archivo vacío o dañado hacía fallar la generación
+    // completa del documento ("Invalid image"); sin logo, el documento se genera igual.
+    if(is_file($logo) && filesize($logo) > 0 && @getimagesize($logo) !== false)
     {
         $header->addImage(
             $logo,

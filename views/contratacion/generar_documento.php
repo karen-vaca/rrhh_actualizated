@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../../config/auth.php';
+requerirAcceso();
         /**
          * MOTOR DE GENERACIÓN DE DOCUMENTOS - PLASTYPETCO
          * Versión 3.0 - SIN TABLAS (solo párrafos)
@@ -188,7 +190,9 @@ $planta          = $data['planta'] ?? 'Mosquera';
             if (function_exists('numfmt_create')) {
                 $formatter = new NumberFormatter("es_CO", NumberFormatter::SPELLOUT);
                 $entero = floor($numero);
-                $texto = ucfirst($formatter->format($entero));
+                // ICU inserta guiones suaves (U+00AD) como pista de silabeo en palabras como
+                // "setecientos": se quitan para que el texto se pueda buscar y copiar bien.
+                $texto = ucfirst(str_replace("\u{AD}", '', $formatter->format($entero)));
                 return $texto . ' pesos m/cte';
             }
             return '$ ' . number_format($numero, 0, ',', '.') . ' pesos m/cte';
