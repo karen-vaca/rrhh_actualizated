@@ -911,6 +911,7 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
           <div class="form-group">
             <label class="form-label">Tipo de documento</label>
             <select class="form-select<?php echo claseError($erroresNuevo, 'id_tipos_documentos'); ?>" name="id_tipos_documentos" required>
+              <option value="">Seleccionar</option>
               <?php echo opcionesSelect($opcionesForm['id_tipos_documentos'], valorNuevo('id_tipos_documentos')); ?>
             </select>
             <?php echo mensajeError($erroresNuevo, 'id_tipos_documentos'); ?>

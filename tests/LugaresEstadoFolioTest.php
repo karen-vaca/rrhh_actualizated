@@ -229,6 +229,21 @@ prueba('el formulario de crear no muestra el estado laboral (ni campo ni texto)'
     $formulario = substr($formulario, 0, strpos($formulario, '</form>'));
     afirmar($formulario !== '' && !str_contains($formulario, 'Estado laboral'), 'El formulario de crear todavía menciona el estado laboral');
 });
+prueba('crear: el tipo de documento arranca en "Seleccionar", sin CC preseleccionado', function () {
+    $h = ejecutarComoWeb('views/trabajadores/index.php', [], 'GET')['cuerpo'];
+    afirmar((bool)preg_match('#<select[^>]*name="id_tipos_documentos"[^>]*>(.*?)</select>#s', $h, $m), 'No está el select de tipo de documento');
+    afirmar((bool)preg_match('#^\s*<option value="">Seleccionar</option>#', $m[1]), 'La primera opción no es "Seleccionar"');
+    afirmar(!str_contains($m[1], ' selected'), 'Hay un tipo de documento preseleccionado');
+});
+prueba('crear sin elegir tipo de documento se rechaza (no asume CC)', function () use ($post) {
+    $r = guardar('crear', array_merge($post, ['id_tipos_documentos' => '']));
+    afirmar(isset($r['errores']['id_tipos_documentos']), 'Se aceptó un trabajador sin tipo de documento: ' . json_encode($r['errores'] ?? null, JSON_UNESCAPED_UNICODE));
+});
+prueba('editar: "Información familiar" ya no muestra el aviso de registrar familiares después', function () {
+    $h = ejecutarComoWeb('views/trabajadores/editar.php', ['id' => '9'], 'GET')['cuerpo'];
+    afirmar(str_contains($h, '¿Tiene hijos?'), 'No se encontró la sección familiar');
+    afirmar(!str_contains($h, 'podrán registrarlos después'), 'Todavía aparece el aviso de familiares');
+});
 prueba('editar: el estado aparece una sola vez, en el banner, con la nota de dónde se cambia', function () {
     $h = ejecutarComoWeb('views/trabajadores/editar.php', ['id' => '9'], 'GET')['cuerpo'];
     $i = strpos($h, '<div class="edit-hero">');

@@ -728,18 +728,6 @@ if (!empty($trabajador['id_area'])) {
 <input class="edit-input<?php echo claseError($erroresEdicion, 'numero_hijos'); ?>" type="number" name="numero_hijos" id="numeroHijos" min="1" max="15" step="1" inputmode="numeric" value="<?php echo e($trabajador['numero_hijos'] ?? ''); ?>" placeholder="0">
 <?php echo mensajeError($erroresEdicion, 'numero_hijos'); ?>
 </div>
-<div class="edit-field full">
-<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px">
-<svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:#16a34a;fill:none;stroke-width:1.8;flex-shrink:0;margin-top:2px">
-<circle cx="12" cy="12" r="10"/>
-<line x1="12" y1="16" x2="12" y2="12"/>
-<line x1="12" y1="8" x2="12.01" y2="8"/>
-</svg>
-<div style="font-size:13px;color:#166534;line-height:1.5">
-Los detalles de familiares (hijos, cónyuge, padres u otros dependientes) podrán registrarlos después desde la ficha del trabajador.
-</div>
-</div>
-</div>
 </div>
 </section>
 
