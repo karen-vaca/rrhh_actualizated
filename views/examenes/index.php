@@ -164,53 +164,17 @@ try {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Exámenes Médicos | PlastyPetco</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<?php require __DIR__ . '/../components/estilos_base.php'; ?>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --green:#2ddf6e;--green-dim:#1a9945;--green-dark:#0d5c2e;
-  --sidebar-bg:#050e07;--sidebar-w:220px;--topbar-h:64px;
-  --content-bg:#f2f5f3;--white:#ffffff;--bg:#f2f5f3;
-  --text:#0d1f11;--text-mid:#4a6655;--text-soft:#8aab96;
-  --border:#e0ebe4;--green-mist:rgba(45,223,110,0.08);
-  --shadow:0 2px 12px rgba(0,0,0,0.07);--shadow-md:0 6px 24px rgba(0,0,0,0.09);
-}
-html,body{height:100%}
-body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--text)}
+:root{--bg:#f2f5f3}
 svg{fill:none;stroke:currentColor;stroke-width:1.8}
-.layout{display:flex;min-height:100vh}
-.sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;
-  position:fixed;top:0;left:0;height:100vh;z-index:100;border-right:1px solid rgba(45,223,110,.1)}
-.sidebar-head{padding:20px 18px 16px;border-bottom:1px solid rgba(45,223,110,.1);display:flex;align-items:center;gap:10px}
-.sidebar-logo{width:36px;height:36px;border-radius:10px;background:var(--green-mist);display:flex;align-items:center;justify-content:center;color:var(--green)}
-.sidebar-brand{font-family:'Syne';font-size:16px;font-weight:800;color:#fff}
-.sidebar-brand em{font-style:normal;color:var(--green)}
-.sidebar-tag{font-size:10px;color:rgba(45,223,110,.5);margin-top:3px}
-.sidebar-nav{flex:1;padding:12px 10px;overflow-y:auto}
-.nav-section{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(45,223,110,.35);padding:12px 8px 5px;font-weight:700}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;
-  color:rgba(255,255,255,.45);font-size:13px;text-decoration:none;transition:all .18s;position:relative}
-.nav-item svg{width:16px;height:16px;flex-shrink:0}
-.nav-item:hover{background:rgba(45,223,110,.08);color:rgba(255,255,255,.85)}
-.nav-item.active{background:rgba(45,223,110,.14);color:var(--green);font-weight:500}
-.nav-item.active::before{content:'';position:absolute;left:0;top:22%;height:56%;width:3px;border-radius:2px;background:var(--green);box-shadow:0 0 8px var(--green)}
-.sidebar-foot{padding:12px 10px;border-top:1px solid rgba(45,223,110,.08)}
-.nav-logout{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:#f87171;font-size:13px;text-decoration:none}
-.nav-logout:hover{background:rgba(248,113,113,.08)}
-.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
-.topbar{height:var(--topbar-h);background:#fff;border-bottom:1px solid var(--border);box-shadow:0 1px 8px rgba(0,0,0,.05);
-  display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:50}
-.topbar-title{font-family:'Syne';font-size:clamp(18px,2vw,22px);font-weight:800}
-.profile-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));
-  display:flex;align-items:center;justify-content:center;font-family:'Syne';font-weight:800;color:#021a08;font-size:13px}
-.content{flex:1;padding:24px 28px;display:flex;flex-direction:column;gap:20px}
 .page-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .page-header-left{display:flex;align-items:center;gap:14px}
 .page-icon{width:52px;height:52px;background:var(--green-mist);border:1px solid rgba(45,223,110,.2);border-radius:14px;
   display:flex;align-items:center;justify-content:center;color:var(--green-dark);flex-shrink:0}
 .page-icon svg{width:24px;height:24px}
-.page-title{font-family:'Syne';font-size:clamp(20px,2.5vw,26px);font-weight:800}
-.page-sub{font-size:13px;color:var(--text-soft);margin-top:3px}
+.page-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1}
+.page-sub{font-size:var(--tx-subtitulo);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);margin-top:3px}
 .page-header-right{display:flex;gap:10px}
 .btn{font-family:'DM Sans';font-size:13px;border-radius:10px;cursor:pointer;transition:all .2s;
   display:inline-flex;align-items:center;gap:7px;border:none;text-decoration:none}
@@ -252,7 +216,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8}
 .filter-select:focus{outline:none;border-color:#b6dfc4;box-shadow:0 0 0 3px rgba(45,223,110,.07)}
 .table-wrap{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
 .table-top{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--border)}
-.table-count{font-size:12.5px;color:var(--text-soft)}
+.table-count{font-size:var(--tx-ayuda);color:var(--tx-color-suave)}
 table{width:100%;border-collapse:collapse}
 thead tr{background:var(--bg);border-bottom:1px solid var(--border)}
 thead th{padding:11px 16px;font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;
@@ -260,11 +224,11 @@ thead th{padding:11px 16px;font-size:11px;font-weight:700;color:var(--text-soft)
 tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:#f7fbf8}
-tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:middle}
+tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);vertical-align:middle}
 .worker-cell{display:flex;align-items:center;gap:10px}
 .worker-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;
   color:#fff;font-family:'Syne';font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.12);flex-shrink:0}
-.worker-name{font-size:13.5px;font-weight:600;line-height:1.2}
+.worker-name{font-size:var(--tx-valor);font-weight:var(--tx-peso-enfasis);color:var(--tx-color);line-height:1.2}
 .worker-id{font-size:11.5px;color:var(--text-soft)}
 .acc-btns{display:flex;gap:6px}
 .badge-tipo{display:inline-flex;border-radius:20px;padding:3px 11px;font-size:11.5px;font-weight:500;
@@ -275,12 +239,12 @@ tbody td{padding:13px 16px;font-size:13.5px;color:var(--text);vertical-align:mid
 .badge-urgent{background:#fff1f2;color:#dc2626;border:1px solid #fecaca}
 .badge-info{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
 .form-section{margin-bottom:18px}
-.form-section-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+.form-section-title{font-size:var(--tx-etiqueta);font-weight:var(--tx-peso-titulo);text-transform:uppercase;letter-spacing:.8px;
   color:var(--text-soft);border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:14px}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 .form-group{display:flex;flex-direction:column;gap:5px}
 .form-group.full{grid-column:span 2}
-.form-label{font-size:11px;font-weight:600;color:var(--text-mid)}
+.form-label{font-size:var(--tx-etiqueta-form);font-weight:var(--tx-peso-enfasis);color:var(--tx-color-medio);letter-spacing:.3px}
 .form-input,.form-select{width:100%;height:42px;background:var(--bg);border:1px solid var(--border);border-radius:10px;
   padding:0 13px;font-size:13.5px;color:var(--text);outline:none;font-family:'DM Sans'}
 textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertical}
@@ -294,8 +258,8 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
 .modal-icon{width:40px;height:40px;border-radius:11px;background:var(--green-mist);color:var(--green-dark);
   display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .modal-icon svg{width:19px;height:19px}
-.modal-title{font-family:'Syne';font-size:17px;font-weight:800}
-.modal-sub{font-size:12.5px;color:var(--text-soft);margin-top:3px}
+.modal-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-modal);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color)}
+.modal-sub{font-size:var(--tx-ayuda);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);line-height:1.45;margin-top:3px}
 .modal-close{width:32px;height:32px;border-radius:50%;border:none;background:none;color:var(--text-soft);
   margin-left:auto;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .modal-close:hover{background:#fff1f2;color:#dc2626}
@@ -316,8 +280,8 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
 .empty-title{font-family:'Syne';font-size:16px;font-weight:700;margin-bottom:6px}
 .empty-sub{font-size:13px;color:var(--text-soft)}
 .error-banner{background:#fff1f2;border:1px solid #fecaca;color:#b91c1c;border-radius:14px;padding:14px 16px;font-size:13.5px}
-@media(max-width:900px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}
-  .content{padding:16px;gap:14px}.mini-stats{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}.form-group.full{grid-column:span 1}}
+@media(max-width:900px){
+  .mini-stats{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}.form-group.full{grid-column:span 1}}
 @media(max-width:640px){thead th:nth-child(2),tbody td:nth-child(2){display:none}}
 .form-help{margin-top:5px;font-size:11.5px;line-height:1.4;color:var(--text-soft)}
 </style>
@@ -328,7 +292,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
   <!-- SIDEBAR — MPA, rutas relativas -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-head">
-      <div class="sidebar-logo"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v6c0 5 4 8 9 9 5-1 9-4 9-9V7z"/></svg></div>
+      <div class="sidebar-logo"><img src="../../assets/img/logo_plastypetco.png" alt="PlastyPetco"></div>
       <div><div class="sidebar-brand">Plasty<em>Petco</em></div><div class="sidebar-tag">RRHH · SG-SST</div></div>
     </div>
     <nav class="sidebar-nav">

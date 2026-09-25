@@ -55,113 +55,31 @@ $nav = [
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title><?= htmlspecialchars($titulo) ?> | PlastyPetco</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<?php require __DIR__ . '/estilos_base.php'; ?>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --green:#2ddf6e;--green-dim:#1a9945;--green-dark:#0d5c2e;
-  --sidebar-bg:#050e07;--sidebar-w:220px;--topbar-h:64px;
-  --content-bg:#f2f5f3;--white:#ffffff;
-  --text:#0d1f11;--text-mid:#4a6655;--text-soft:#8aab96;
-  --border:#e0ebe4;--border-dark:rgba(45,223,110,0.18);
-  --green-mist:rgba(45,223,110,0.08);
-  --shadow:0 2px 12px rgba(0,0,0,0.07);
-  --shadow-md:0 6px 24px rgba(0,0,0,0.09);
-}
-html,body{height:100%;overflow-x:hidden}
-body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--text)}
 
 /* ── LAYOUT ── */
-.layout{display:flex;min-height:100vh}
 
 /* ── SIDEBAR ── */
-.sidebar{
-  width:var(--sidebar-w);background:var(--sidebar-bg);
-  display:flex;flex-direction:column;
-  position:fixed;top:0;left:0;height:100vh;z-index:100;
-  transition:transform .3s cubic-bezier(.22,1,.36,1);
-  border-right:1px solid rgba(45,223,110,0.1);
-}
-.sidebar-head{padding:20px 18px 16px;border-bottom:1px solid rgba(45,223,110,0.1);display:flex;align-items:center;gap:10px}
-.sidebar-logo{width:36px;height:36px;flex-shrink:0}
-.sidebar-logo img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen}
-.sidebar-brand{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#fff;letter-spacing:-.3px;line-height:1}
-.sidebar-brand em{font-style:normal;color:var(--green)}
-.sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
-.nav-section{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(45,223,110,0.35);padding:12px 8px 5px;font-weight:700}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:rgba(255,255,255,0.45);font-size:13px;text-decoration:none;transition:all .18s;position:relative}
-.nav-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0}
-.nav-item:hover{background:rgba(45,223,110,0.08);color:rgba(255,255,255,0.85)}
-.nav-item.active{background:rgba(45,223,110,0.14);color:var(--green);font-weight:500}
-.nav-item.active::before{content:'';position:absolute;left:0;top:22%;height:56%;width:3px;border-radius:2px;background:var(--green);box-shadow:0 0 8px var(--green)}
-.sidebar-foot{padding:12px 10px;border-top:1px solid rgba(45,223,110,0.08)}
-.nav-logout{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:#f87171;font-size:13px;text-decoration:none;transition:background .18s}
-.nav-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
-.nav-logout:hover{background:rgba(248,113,113,0.08)}
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99;backdrop-filter:blur(3px)}
 
 /* ── MAIN ── */
-.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
 
 /* ── TOPBAR ── */
-.topbar{
-  height:var(--topbar-h);background:var(--white);
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 28px;position:sticky;top:0;z-index:50;
-  box-shadow:0 1px 8px rgba(0,0,0,0.05);
-}
-.topbar-left{display:flex;align-items:center;gap:16px}
-.menu-toggle{display:none;background:none;border:none;color:var(--text-mid);cursor:pointer;padding:4px}
-.menu-toggle svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
-.topbar-title{font-family:'Syne',sans-serif;font-size:clamp(18px,2vw,22px);font-weight:800;color:var(--text);letter-spacing:-.4px}
-.topbar-right{display:flex;align-items:center;gap:12px}
-
-.profile-wrap{position:relative}
-.profile-btn{display:flex;align-items:center;gap:10px;background:var(--content-bg);border:1px solid var(--border);border-radius:40px;padding:6px 14px 6px 6px;cursor:pointer;transition:all .2s}
-.profile-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:14px;font-weight:800;color:#021a08;flex-shrink:0;box-shadow:0 0 10px rgba(45,223,110,0.3)}
-.profile-info{display:flex;flex-direction:column;text-align:left;line-height:1.2}
-.profile-name{font-size:13px;font-weight:600;color:var(--text)}
-.profile-role{font-size:11px;color:var(--green-dim)}
-.profile-chevron{width:15px;height:15px;color:var(--text-soft);transition:transform .25s;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
-.profile-wrap.open .profile-chevron{transform:rotate(180deg)}
-.profile-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:230px;background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-md);display:none;animation:ddIn .2s cubic-bezier(.22,1,.36,1) both;z-index:200}
-.profile-wrap.open .profile-dropdown{display:block}
-@keyframes ddIn{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}
-.profile-dropdown-head{padding:14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);background:var(--content-bg)}
-.profile-avatar-lg{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:#021a08;flex-shrink:0}
-.profile-dropdown-body{padding:6px}
-.profile-dd-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;font-size:13px;color:var(--text-mid);text-decoration:none;transition:background .15s,color .15s}
-.profile-dd-item svg{width:14px;height:14px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
-.profile-dd-item:hover{background:var(--green-mist);color:var(--green-dark)}
-.profile-dd-sep{height:1px;background:var(--border);margin:5px 0}
-.profile-dd-logout{color:#dc2626 !important}
-.profile-dd-logout:hover{background:#fff1f2 !important}
 
 /* ── CONTENT ── */
-.content{flex:1;padding:24px 28px;display:flex;align-items:center;justify-content:center}
+/* Centra el aviso dentro del área de contenido común */
+.content-centrada{align-items:center;justify-content:center}
 .wip-card{background:var(--white);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow);padding:44px 40px;max-width:480px;width:100%;text-align:center}
 .wip-icon{width:64px;height:64px;margin:0 auto 18px;background:var(--green-mist);border:1px solid rgba(45,223,110,0.2);border-radius:18px;display:flex;align-items:center;justify-content:center;color:var(--green-dim)}
 .wip-icon svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:1.7}
 .wip-badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#d97706;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:4px 10px;margin-bottom:12px}
-.wip-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;letter-spacing:-.4px;margin-bottom:8px}
-.wip-text{font-size:14px;color:var(--text-mid);line-height:1.55;margin-bottom:24px}
+.wip-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1;margin-bottom:8px}
+.wip-text{font-size:var(--tx-valor);color:var(--tx-color-medio);line-height:1.55;margin-bottom:24px}
 .btn-back{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--green),var(--green-dim));border:none;border-radius:10px;padding:10px 18px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#021a08;text-decoration:none;box-shadow:0 3px 14px rgba(45,223,110,0.25);transition:all .2s}
 .btn-back:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,223,110,0.35)}
 .btn-back svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
 
-@media(max-width:900px){
-  .sidebar{transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
-  .sidebar-overlay.open{display:block}
-  .main{margin-left:0}
-  .menu-toggle{display:flex}
-  .topbar{padding:0 16px}
-  .content{padding:16px}
-}
 @media(max-width:640px){
-  .profile-info{display:none}
-  .profile-btn{padding:4px}
   .wip-card{padding:32px 22px}
 }
 </style>
@@ -231,7 +149,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--content-bg);color:var(--t
     </div>
   </header>
 
-  <div class="content">
+  <div class="content content-centrada">
     <div class="wip-card">
       <div class="wip-icon">
         <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>

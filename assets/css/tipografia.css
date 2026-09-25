@@ -1,0 +1,63 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Escala tipográfica del sistema (fuente única de verdad)
+   ───────────────────────────────────────────────────────────────────────────
+   Se carga en todas las pantallas internas desde views/components/estilos_base.php
+   (junto con las fuentes de Google), ANTES del <style> propio de cada pantalla.
+
+   Referencia: el listado de Trabajadores. Negrita solo donde jerarquiza (títulos,
+   nombre de la persona en una fila, cifras); el dato en sí va en peso normal.
+
+   Uso en pantallas nuevas: las clases .tx-* de abajo, o las variables --tx-* en
+   los estilos propios de la pantalla. No escribir tamaños ni pesos sueltos.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* Familias */
+  --tx-fuente-titulos:'Syne',sans-serif;
+  --tx-fuente-texto:'DM Sans',sans-serif;
+
+  /* Colores de texto */
+  --tx-color:#0d1f11;          /* principal: títulos y datos */
+  --tx-color-medio:#4a6655;    /* etiquetas de formulario, texto de apoyo */
+  --tx-color-suave:#8aab96;    /* secundario: subtítulos, etiquetas de dato, ayudas */
+
+  /* Pesos */
+  --tx-peso-normal:400;
+  --tx-peso-medio:500;
+  --tx-peso-enfasis:600;       /* nombre en una fila, botones, etiquetas de formulario */
+  --tx-peso-titulo:700;        /* títulos de sección / tarjeta */
+  --tx-peso-titulo-pagina:800;
+
+  /* Título del módulo en la barra superior ("Trabajadores", "Novedades"); lo usa layout.css */
+  --tx-topbar-titulo:clamp(18px,2vw,22px);
+  /* 1. Título de página ("Ficha del Trabajador", "Editar Trabajador") */
+  --tx-titulo-pagina:clamp(20px,2.5vw,26px);
+  /* Título de ventana (modal) */
+  --tx-titulo-modal:17px;
+  /* Nombre de la persona en el encabezado verde de ficha / edición */
+  --tx-nombre-encabezado:20px;
+  /* 2. Subtítulo / descripción de página */
+  --tx-subtitulo:13px;
+  /* 3. Título de sección / tarjeta ("Información personal") */
+  --tx-titulo-seccion:15px;
+  /* 4. Etiqueta de campo: dato de solo lectura (NOMBRES), encabezados de tabla y filtros */
+  --tx-etiqueta:10.5px;
+  /*    Etiqueta de un campo de formulario (encima del input) */
+  --tx-etiqueta-form:11.5px;
+  /* 5. Valor de campo (el dato en sí; también celdas de tabla e inputs) */
+  --tx-valor:13.5px;
+  /* 6. Texto secundario / ayuda (notas, aclaraciones, dato bajo otro dato) */
+  --tx-ayuda:12.5px;
+  --tx-ayuda-chica:11.5px;     /* dato secundario bajo un nombre (documento, género) */
+  /* Insignias y píldoras de estado */
+  --tx-insignia:11.5px;
+}
+
+/* ── Clases de la escala (para pantallas nuevas) ── */
+.tx-titulo-pagina{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1}
+.tx-subtitulo{font-size:var(--tx-subtitulo);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);margin-top:3px}
+.tx-titulo-seccion{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-seccion);font-weight:var(--tx-peso-titulo);color:var(--tx-color);letter-spacing:-.2px}
+.tx-etiqueta{font-size:var(--tx-etiqueta);font-weight:var(--tx-peso-enfasis);color:var(--tx-color-suave);text-transform:uppercase;letter-spacing:.7px}
+.tx-etiqueta-form{font-size:var(--tx-etiqueta-form);font-weight:var(--tx-peso-enfasis);color:var(--tx-color-medio);letter-spacing:.3px}
+.tx-valor{font-size:var(--tx-valor);font-weight:var(--tx-peso-normal);color:var(--tx-color);line-height:1.35}
+.tx-ayuda{font-size:var(--tx-ayuda);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);line-height:1.45}
