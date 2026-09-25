@@ -12,8 +12,7 @@
 .aviso-cuerpo{flex:1;min-width:0}
 .aviso-titulo{font-size:13.5px;font-weight:600;color:#0d1f11;margin-bottom:2px}
 .aviso-texto{font-size:13px;line-height:1.45;color:#0d1f11;word-break:break-word}
-.aviso-accion{display:inline-flex;margin-top:8px;padding:6px 12px;border-radius:9px;font-size:12.5px;font-weight:600;text-decoration:none;background:linear-gradient(135deg,#2ddf6e,#1a9945);color:#021a08}
-.aviso-accion:hover{filter:brightness(1.05)}
+.aviso-accion{margin-top:8px}
 .aviso-cerrar{flex-shrink:0;width:26px;height:26px;border-radius:8px;border:none;background:none;color:#8aab96;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .aviso-cerrar:hover{background:#f2f5f3;color:#0d1f11}
 .aviso-cerrar svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
@@ -33,13 +32,6 @@
 .confirmacion-titulo{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#0d1f11;letter-spacing:-.3px;margin:0 0 8px}
 .confirmacion-mensaje{font-size:13.5px;line-height:1.55;color:#4a6655;margin:0 0 20px}
 .confirmacion-acciones{display:flex;justify-content:flex-end;gap:10px}
-.confirmacion-cancelar,.confirmacion-aceptar{height:40px;border-radius:10px;padding:0 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
-.confirmacion-cancelar{border:1px solid #e0ebe4;background:#fff;color:#4a6655}
-.confirmacion-cancelar:hover{background:#f2f5f3}
-.confirmacion-aceptar{border:1px solid #1a9945;background:linear-gradient(135deg,#2ddf6e,#1a9945);color:#021a08}
-.confirmacion-peligro .confirmacion-aceptar{border-color:#dc2626;background:#dc2626;color:#fff}
-.confirmacion-peligro .confirmacion-aceptar:hover{background:#b91c1c;border-color:#b91c1c}
-.confirmacion-cancelar:focus-visible,.confirmacion-aceptar:focus-visible,.aviso-cerrar:focus-visible{outline:2px solid #2ddf6e;outline-offset:2px}
 body.confirmacion-abierta{overflow:hidden}
 
 @media(max-width:560px){.avisos{top:auto;bottom:16px;right:16px}}

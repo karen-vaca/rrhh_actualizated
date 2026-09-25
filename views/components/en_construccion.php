@@ -75,9 +75,6 @@ $nav = [
 .wip-badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#d97706;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:4px 10px;margin-bottom:12px}
 .wip-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1;margin-bottom:8px}
 .wip-text{font-size:var(--tx-valor);color:var(--tx-color-medio);line-height:1.55;margin-bottom:24px}
-.btn-back{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--green),var(--green-dim));border:none;border-radius:10px;padding:10px 18px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#021a08;text-decoration:none;box-shadow:0 3px 14px rgba(45,223,110,0.25);transition:all .2s}
-.btn-back:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,223,110,0.35)}
-.btn-back svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
 
 @media(max-width:640px){
   .wip-card{padding:32px 22px}
@@ -106,7 +103,7 @@ $nav = [
       <span class="wip-badge">En construcción</span>
       <div class="wip-title"><?= htmlspecialchars($titulo) ?></div>
       <p class="wip-text"><?= htmlspecialchars($descripcion) ?><br>Estamos trabajando en esta sección; estará disponible pronto.</p>
-      <a href="../dashboard/dashboard.php" class="btn-back">
+      <a href="../dashboard/dashboard.php" class="btn btn-outline">
         <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>Volver al resumen
       </a>
     </div>

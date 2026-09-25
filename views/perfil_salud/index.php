@@ -273,22 +273,6 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8}
 .page-header-right{display:flex;gap:10px}
 
 /* Botones §13 */
-.btn{font-family:'DM Sans';font-size:13px;border-radius:10px;cursor:pointer;transition:all .2s;
-  display:inline-flex;align-items:center;gap:7px;border:none;text-decoration:none}
-.btn svg{width:16px;height:16px}
-.btn-new{background:linear-gradient(135deg,var(--green),var(--green-dim));padding:10px 18px;
-  font-family:'Syne';font-weight:700;color:#021a08;box-shadow:0 3px 14px rgba(45,223,110,.25)}
-.btn-new:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,223,110,.35)}
-.btn-back{background:#fff;border:1px solid var(--border);padding:9px 16px;color:var(--text-mid)}
-.btn-back:hover{border-color:#b6dfc4;background:#f7fbf8}
-.btn-cancel{background:none;border:1px solid var(--border);padding:10px 20px;color:var(--text-mid)}
-.btn-cancel:hover{background:var(--bg)}
-.btn-filter{background:#fff;border:1px solid var(--border);height:40px;padding:0 16px;color:var(--text-mid)}
-.btn-filter:hover{border-color:#b6dfc4;background:#f0f8f3}
-.btn-clear{color:#dc2626;border-color:#fecaca}
-.btn-clear:hover{background:#fff1f2;border-color:#fca5a5}
-.btn-success{background:#16a34a;color:#fff;border-radius:12px;padding:11px 18px;font-weight:700;font-size:13.5px;box-shadow:0 8px 22px rgba(22,163,74,.22)}
-.btn-success:hover{background:#15803d;transform:translateY(-1px)}
 .acc-btn{width:30px;height:30px;border-radius:8px;background:none;border:1px solid transparent;
   display:flex;align-items:center;justify-content:center;color:var(--text-soft);transition:all .18s;cursor:pointer;text-decoration:none}
 .acc-btn svg{width:15px;height:15px}
@@ -540,10 +524,10 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
             <option value="no_apto" <?php echo $aptitud === 'no_apto' ? 'selected' : '' ?>>No apto</option>
             <option value="pendiente" <?php echo $aptitud === 'pendiente' ? 'selected' : '' ?>>Pendiente</option>
           </select>
-          <button type="submit" class="btn btn-filter">
+          <button type="submit" class="btn btn-outline">
             <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filtrar
           </button>
-          <a href="index.php" class="btn btn-filter btn-clear">
+          <a href="index.php" class="btn btn-outline-danger">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Limpiar
           </a>
         </div>
@@ -612,7 +596,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
           </div>
         </div>
         <div class="page-header-right">
-          <a class="btn btn-back" href="index.php">
+          <a class="btn btn-outline" href="index.php">
             <svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
             Volver a Perfil de Salud
           </a>
@@ -641,7 +625,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
               <div><span class="ro-label">Última evaluación</span><span class="ro-value"><?php echo psFmtFecha($t['fecha_evaluacion']) ?></span></div>
               <div><span class="ro-label">Próximo examen</span><span class="ro-value"><?php echo psFmtFecha($t['fecha_vencimiento']) ?> <?php echo psBadgeVencimiento($t['fecha_vencimiento']) ?></span></div>
             </div>
-            <button class="btn btn-new" style="margin-top:14px" onclick="document.getElementById('backdropRestriccion').classList.add('open')">
+            <button class="btn btn-primary" style="margin-top:14px" onclick="document.getElementById('backdropRestriccion').classList.add('open')">
               <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Registrar restricción médica
             </button>
@@ -734,8 +718,8 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
               </div>
             </div>
             <div class="modal-foot" style="padding:0">
-              <button type="button" class="btn btn-cancel" onclick="document.getElementById('backdropRestriccion').classList.remove('open')">Cancelar</button>
-              <button type="submit" class="btn btn-new">Guardar restricción</button>
+              <button type="button" class="btn btn-outline" onclick="document.getElementById('backdropRestriccion').classList.remove('open')">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Guardar restricción</button>
             </div>
           </form>
         </div>
@@ -753,11 +737,11 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
           </div>
           <div class="confirm-message">Verifica que exista concepto médico que respalde el levantamiento de la restricción.</div>
           <div class="confirm-actions">
-            <button class="btn btn-cancel" onclick="document.getElementById('backdropFinalizar').classList.remove('open')">Cancelar</button>
+            <button class="btn btn-outline" onclick="document.getElementById('backdropFinalizar').classList.remove('open')">Cancelar</button>
             <form method="POST" action="finalizar_restriccion.php" style="display:inline"><?php echo campoCsrf(); ?>
               <input type="hidden" name="id" id="finalizarIdRestriccion">
               <input type="hidden" name="trabajador" id="finalizarIdTrabajador">
-              <button type="submit" class="btn btn-success">Sí, finalizar</button>
+              <button type="submit" class="btn btn-primary">Sí, finalizar</button>
             </form>
           </div>
         </div>

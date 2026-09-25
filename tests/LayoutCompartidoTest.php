@@ -149,6 +149,30 @@ prueba('avatar: la misma persona tiene el mismo color en Trabajadores y Contrata
     }
 });
 
+echo "\nBotones: una sola base (assets/css/botones.css)\n";
+$botones = file_get_contents("$raiz/assets/css/botones.css");
+prueba('botones.css define la base y los roles, con la fuente de texto y un solo peso', function () use ($botones, $raiz) {
+    foreach (['.btn', '.btn-primary', '.btn-outline', '.btn-outline-info', '.btn-outline-danger', '.btn-danger', '.btn-sm'] as $sel) {
+        afirmar(in_array($sel, selectoresCss($botones), true), "Falta $sel");
+    }
+    afirmar((bool)preg_match('/\.btn\{[^}]*font-family:var\(--tx-fuente-texto[^}]*font-weight:var\(--tx-peso-medio/s', $botones), 'La base no fija la fuente de texto y el peso');
+    afirmar(substr_count($botones, 'font-weight') === 1 && substr_count($botones, 'font-family') === 1, 'Los modificadores no deben cambiar fuente ni peso');
+    afirmar(str_contains(file_get_contents("$raiz/views/components/estilos_base.php"), 'assets/css/botones.css'), 'estilos_base.php no carga botones.css');
+});
+foreach (array_merge($pantallas, ['views/trabajadores/imprimir.php', 'views/trabajadores/trabajadores_imprimir.php', 'views/trabajadores/trabajadores_pdf.php']) as $p) {
+    prueba("$p: sin estilos de botón propios y cada .btn con su rol", function () use ($raiz, $p) {
+        $s = file_get_contents("$raiz/$p");
+        preg_match_all('#<style[^>]*>(.*?)</style>#s', $s, $m);
+        $propios = array_filter(selectoresCss(implode("\n", $m[1])), fn($sel) =>
+            preg_match('/^\.(btn|btn-[\w-]+|[\w-]+-btn)(?![\w-])/', $sel) && !preg_match('/^\.(acc-btn|pag-btn|cal-nav-btn|icon-btn|pn-close-btn|btn-icon)/', $sel));
+        afirmar($propios === [], 'Define botones en su <style>: ' . implode(' ', array_unique($propios)));
+        preg_match_all('/class="(btn(?: [^"]*)?)"/', $s, $clases);
+        foreach ($clases[1] as $c) {
+            afirmar((bool)preg_match('/\bbtn-(primary|outline|outline-info|outline-danger|danger)\b/', $c), "Botón sin rol: class=\"$c\"");
+        }
+    });
+}
+
 echo "\nSidebar y barra superior vienen de un solo componente\n";
 foreach ($pantallas as $p) {
     prueba("$p: usa components/sidebar.php y topbar.php, sin copia propia", function () use ($raiz, $p) {

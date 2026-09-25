@@ -129,7 +129,7 @@ prueba('las 4 tarjetas son filtros y su número coincide con las filas que filtr
 });
 
 prueba('botón "Volver al Panel" junto a "Nueva contratación" lleva al Dashboard', function () use ($listado) {
-    afirmar((bool)preg_match('#<div class="page-header-right">\s*<a href="\.\./dashboard/dashboard\.php" class="btn-back">.*?Volver al Panel</a>\s*<button[^>]*onclick="nuevoContrato\(\)"#s', $listado),
+    afirmar((bool)preg_match('#<div class="page-header-right">\s*<a href="\.\./dashboard/dashboard\.php" class="btn btn-outline">.*?Volver al Panel</a>\s*<button[^>]*onclick="nuevoContrato\(\)"#s', $listado),
         'No está el botón Volver al Panel junto a Nueva contratación');
     afirmar(is_file(__DIR__ . '/../views/dashboard/dashboard.php'), 'El destino no existe');
     $r = ejecutarComoWeb('views/dashboard/dashboard.php', [], 'GET');

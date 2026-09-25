@@ -53,12 +53,6 @@ require __DIR__ . '/../components/estilos_base.php';
 .page-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1}
 .page-sub{font-size:var(--tx-subtitulo);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);margin-top:3px}
 .page-header-right{display:flex;align-items:center;gap:10px}
-.btn-back{display:flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:500;color:var(--text-mid);text-decoration:none;transition:all .2s}
-.btn-back:hover{border-color:#b6dfc4;background:#f7fbf8}
-.btn-back svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
-.btn-new{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--green),var(--green-dim));border:none;border-radius:10px;padding:10px 18px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#021a08;cursor:pointer;text-decoration:none;transition:all .2s;box-shadow:0 3px 14px rgba(45,223,110,0.25)}
-.btn-new:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,223,110,0.35)}
-.btn-new svg{width:16px;height:16px;stroke:#021a08;fill:none;stroke-width:2.5}
 
 /* ── MINI STATS ── */
 .mini-stats-vac{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
@@ -200,10 +194,6 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
 .dr-row.total{border-top:1px solid var(--border);padding-top:6px;margin-top:2px;font-weight:700;color:var(--text)}
 .dr-title{font-size:10.5px;font-weight:700;color:var(--green-dim);text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
 .pn-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
-.btn-cancel-sm{background:none;border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-size:12.5px;color:var(--text-mid);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
-.btn-cancel-sm:hover{background:var(--content-bg)}
-.btn-save-sm{background:linear-gradient(135deg,var(--green),var(--green-dim));border:none;border-radius:10px;padding:9px 18px;font-family:'Syne',sans-serif;font-size:12.5px;font-weight:700;color:#021a08;cursor:pointer;transition:all .2s}
-.btn-save-sm:hover{transform:translateY(-1px)}
 
 /* ── MODAL (idéntico a trabajadores) ── */
 .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);backdrop-filter:blur(5px);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
@@ -231,10 +221,6 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
 .form-input[readonly]{background:#eef2ef;color:var(--green-dim);font-weight:var(--tx-peso-enfasis)}
 .form-textarea{height:auto;min-height:76px;padding:12px 13px;resize:vertical}
 .modal-foot{padding:0 24px 22px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:16px}
-.btn-cancel{background:none;border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;color:var(--text-mid);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
-.btn-cancel:hover{background:var(--content-bg)}
-.btn-save{background:linear-gradient(135deg,var(--green),var(--green-dim));border:none;border-radius:10px;padding:10px 22px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#021a08;cursor:pointer;transition:all .2s;box-shadow:0 3px 14px rgba(45,223,110,0.25)}
-.btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,223,110,0.35)}
 
 .info-box{margin-top:12px;background:var(--green-mist);border:1px solid rgba(45,223,110,.24);border-radius:12px;padding:12px 14px}
 .info-box-row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-mid);margin-top:4px}
@@ -283,8 +269,8 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
         </div>
       </div>
       <div class="page-header-right">
-        <a href="../dashboard/dashboard.php" class="btn-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Volver al Panel</a>
-        <button class="btn-new" onclick="abrirModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nueva solicitud</button>
+        <a href="../dashboard/dashboard.php" class="btn btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Volver al Panel</a>
+        <button class="btn btn-primary" onclick="abrirModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nueva solicitud</button>
       </div>
     </div>
 
@@ -458,8 +444,8 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
             </div>
           </div>
           <div class="pn-foot">
-            <button class="btn-cancel-sm" onclick="cerrarPanel()">Cancelar</button>
-            <button class="btn-save-sm" onclick="guardar()">Guardar cambios</button>
+            <button class="btn btn-outline btn-sm" onclick="cerrarPanel()">Cancelar</button>
+            <button class="btn btn-primary btn-sm" onclick="guardar()">Guardar cambios</button>
           </div>
         </div>
       </aside>
@@ -542,8 +528,8 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
 
     </div>
     <div class="modal-foot">
-      <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-      <button class="btn-save" onclick="registrarVacacion()">Registrar solicitud</button>
+      <button class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="registrarVacacion()">Registrar solicitud</button>
     </div>
   </div>
 </div>

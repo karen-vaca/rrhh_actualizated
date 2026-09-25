@@ -203,7 +203,7 @@ prueba('la pantalla carga con los dos formularios habilitados (sin bloqueo "en d
     $h = $r['cuerpo'];
     afirmar($r['status'] === 200 && !str_contains($h, 'error-banner"><'), 'La página no cargó bien');
     afirmar(!str_contains($h, 'en desarrollo') && !str_contains($h, '<fieldset disabled'), 'Sigue el bloqueo');
-    afirmar(preg_match_all('/<button type="submit" class="btn btn-new">(Programar|Guardar resultado)<\/button>/', $h) === 2, 'Los botones de guardar deberían estar habilitados');
+    afirmar(preg_match_all('/<button type="submit" class="btn btn-primary">(Programar|Guardar resultado)<\/button>/', $h) === 2, 'Los botones de guardar deberían estar habilitados');
     afirmar(str_contains($h, 'name="concepto_alturas"') && str_contains($h, 'Post-incapacidad'), 'Faltan opciones nuevas');
 });
 

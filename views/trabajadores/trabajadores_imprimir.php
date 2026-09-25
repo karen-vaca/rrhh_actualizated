@@ -66,6 +66,9 @@ try {
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- Botones con la misma tipografía del sistema (el documento sigue en Arial para imprimir) -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../../assets/css/botones.css">
 <meta charset="UTF-8">
 <title>Imprimir trabajadores | PlastyPetco</title>
 
@@ -208,21 +211,7 @@ try {
         gap: 10px;
     }
 
-    .btn {
-        border: none;
-        background: #16a34a;
-        color: #ffffff;
-        padding: 12px 18px;
-        border-radius: 10px;
-        font-weight: bold;
-        cursor: pointer;
-        text-decoration: none;
-        font-size: 14px;
-    }
 
-    .btn-volver {
-        background: #111827;
-    }
 
     .sin-datos {
         text-align: center;
@@ -367,8 +356,8 @@ try {
     <?php endif; ?>
 
     <div class="acciones">
-        <a href="index.php" class="btn btn-volver">Volver</a>
-        <button type="button" onclick="window.print()" class="btn">Imprimir</button>
+        <a href="index.php" class="btn btn-outline">Volver</a>
+        <button type="button" onclick="window.print()" class="btn btn-primary">Imprimir</button>
     </div>
 
 </div>

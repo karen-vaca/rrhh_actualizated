@@ -1,0 +1,46 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Botones de acción (fuente única de verdad)
+   ───────────────────────────────────────────────────────────────────────────
+   Base .btn: misma familia (la de texto, no la de títulos), un solo peso, mismo tamaño,
+   alto, relleno y radio para TODOS los botones con texto del sistema. Los modificadores
+   solo cambian color de fondo, borde y texto:
+
+     .btn .btn-primary         acción principal (verde): Nueva contratación, Guardar, Editar
+     .btn .btn-outline         secundaria (blanco con borde): Volver, Ver trabajador, Cancelar, Filtrar
+     .btn .btn-outline-info    azul: Renovar, Reactivar
+     .btn .btn-outline-danger  rojo: Terminar, Inactivar, Limpiar filtros
+     .btn .btn-danger          rojo sólido: confirmar una acción destructiva (en diálogos)
+     .btn-sm                   tamaño chico (dentro de tarjetas, avisos, ayudas)
+
+   Se carga en todas las pantallas desde views/components/estilos_base.php (y en las
+   páginas de impresión). Las pantallas no deben definir estilos propios de botón.
+   Los botones solo de ícono (.acc-btn, .btn-icon, .notif-btn…) son otro componente.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  height:40px;padding:0 16px;border-radius:10px;border:1px solid transparent;
+  font-family:var(--tx-fuente-texto,'DM Sans',sans-serif);font-size:13px;font-weight:var(--tx-peso-medio,500);
+  line-height:1;letter-spacing:0;white-space:nowrap;text-decoration:none;cursor:pointer;
+  transition:background .18s,border-color .18s,color .18s,box-shadow .18s,transform .18s;
+}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0}
+.btn:focus-visible{outline:2px solid var(--green,#2ddf6e);outline-offset:2px}
+.btn:disabled,.btn[aria-disabled="true"]{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-sm{height:34px;padding:0 12px;font-size:12.5px;gap:6px}
+.btn-sm svg{width:14px;height:14px}
+
+.btn-primary{background:linear-gradient(135deg,var(--green,#2ddf6e),var(--green-dim,#1a9945));color:#021a08;box-shadow:0 3px 14px rgba(45,223,110,.25)}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(45,223,110,.35);transform:translateY(-1px)}
+
+.btn-outline{background:var(--white,#fff);border-color:var(--border,#e0ebe4);color:var(--text-mid,#4a6655)}
+.btn-outline:hover{border-color:#b6dfc4;background:#f7fbf8;color:var(--green-dark,#0d5c2e)}
+
+.btn-outline-info{background:var(--white,#fff);border-color:#bfdbfe;color:#2563eb}
+.btn-outline-info:hover{background:#eff6ff;border-color:#93c5fd;color:#1d4ed8}
+
+.btn-outline-danger{background:var(--white,#fff);border-color:#fecaca;color:#dc2626}
+.btn-outline-danger:hover{background:#fff1f2;border-color:#fca5a5;color:#b91c1c}
+
+.btn-danger{background:#dc2626;border-color:#dc2626;color:#fff}
+.btn-danger:hover{background:#b91c1c;border-color:#b91c1c}

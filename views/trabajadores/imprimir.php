@@ -60,6 +60,9 @@ function generoNombre($id_genero) {
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<!-- Botones con la misma tipografía del sistema (el documento sigue en Arial para imprimir) -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../../assets/css/botones.css">
 <meta charset="UTF-8">
 <title>Imprimir trabajadores | PlastyPetco</title>
 
@@ -135,26 +138,7 @@ function generoNombre($id_genero) {
         text-align: right;
     }
 
-    .btn {
-        border: none;
-        background: #16a34a;
-        color: white;
-        padding: 11px 18px;
-        border-radius: 10px;
-        font-weight: bold;
-        cursor: pointer;
-    }
 
-    .btn-volver {
-        background: #111827;
-        color: white;
-        text-decoration: none;
-        padding: 11px 18px;
-        border-radius: 10px;
-        font-weight: bold;
-        margin-right: 8px;
-        display: inline-block;
-    }
 
     @media print {
         body {
@@ -229,8 +213,8 @@ function generoNombre($id_genero) {
     </table>
 
     <div class="acciones">
-        <a href="index.php" class="btn-volver">Volver</a>
-        <button onclick="window.print()" class="btn">Imprimir</button>
+        <a href="index.php" class="btn btn-outline">Volver</a>
+        <button onclick="window.print()" class="btn btn-primary">Imprimir</button>
     </div>
 
 </div>

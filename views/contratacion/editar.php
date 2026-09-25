@@ -91,11 +91,11 @@ textarea.edit-input{height:auto;min-height:96px;padding:10px 13px;line-height:1.
         </div>
       </div>
       <div class="page-header-right">
-        <a href="index.php" class="btn">
+        <a href="index.php" class="btn btn-outline">
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
           Volver
         </a>
-        <a href="ver.php?id=<?= $idContrato ?>" class="btn">
+        <a href="ver.php?id=<?= $idContrato ?>" class="btn btn-outline">
           <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           Ver ficha
         </a>
@@ -270,7 +270,7 @@ textarea.edit-input{height:auto;min-height:96px;padding:10px 13px;line-height:1.
       </div>
 
       <div class="edit-actions">
-        <a href="ver.php?id=<?= $idContrato ?>" class="btn">Cancelar</a>
+        <a href="ver.php?id=<?= $idContrato ?>" class="btn btn-outline">Cancelar</a>
         <button type="submit" class="btn btn-primary">
           <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Guardar cambios

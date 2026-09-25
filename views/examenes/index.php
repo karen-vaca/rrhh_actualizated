@@ -181,18 +181,6 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8}
 .page-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1}
 .page-sub{font-size:var(--tx-subtitulo);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);margin-top:3px}
 .page-header-right{display:flex;gap:10px}
-.btn{font-family:'DM Sans';font-size:13px;border-radius:10px;cursor:pointer;transition:all .2s;
-  display:inline-flex;align-items:center;gap:7px;border:none;text-decoration:none}
-.btn svg{width:16px;height:16px}
-.btn-new{background:linear-gradient(135deg,var(--green),var(--green-dim));padding:10px 18px;
-  font-family:'Syne';font-weight:700;color:#021a08;box-shadow:0 3px 14px rgba(45,223,110,.25)}
-.btn-new:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,223,110,.35)}
-.btn-cancel{background:none;border:1px solid var(--border);padding:10px 20px;color:var(--text-mid)}
-.btn-cancel:hover{background:var(--bg)}
-.btn-filter{background:#fff;border:1px solid var(--border);height:40px;padding:0 16px;color:var(--text-mid)}
-.btn-filter:hover{border-color:#b6dfc4;background:#f0f8f3}
-.btn-clear{color:#dc2626;border-color:#fecaca}
-.btn-clear:hover{background:#fff1f2;border-color:#fca5a5}
 .acc-btn{width:30px;height:30px;border-radius:8px;background:none;border:1px solid transparent;
   display:flex;align-items:center;justify-content:center;color:var(--text-soft);transition:all .18s;cursor:pointer;text-decoration:none}
 .acc-btn svg{width:15px;height:15px}
@@ -318,7 +306,7 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
           </div>
         </div>
         <div class="page-header-right">
-          <button class="btn btn-new" onclick="document.getElementById('backdropProgramar').classList.add('open')">
+          <button class="btn btn-primary" onclick="document.getElementById('backdropProgramar').classList.add('open')">
             <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Programar examen
           </button>
@@ -365,10 +353,10 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
             <option value="programado" <?php echo $estadoFiltro === 'programado' ? 'selected' : '' ?>>Programado</option>
             <option value="realizado" <?php echo $estadoFiltro === 'realizado' ? 'selected' : '' ?>>Realizado</option>
           </select>
-          <button type="submit" class="btn btn-filter">
+          <button type="submit" class="btn btn-outline">
             <svg viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filtrar
           </button>
-          <a href="index.php" class="btn btn-filter btn-clear">
+          <a href="index.php" class="btn btn-outline-danger">
             <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Limpiar
           </a>
         </div>
@@ -478,8 +466,8 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
               </div>
             </div>
             <div class="modal-foot" style="padding:0">
-              <button type="button" class="btn btn-cancel" onclick="document.getElementById('backdropProgramar').classList.remove('open')">Cancelar</button>
-              <button type="submit" class="btn btn-new">Programar</button>
+              <button type="button" class="btn btn-outline" onclick="document.getElementById('backdropProgramar').classList.remove('open')">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Programar</button>
             </div>
           </form>
         </div>
@@ -533,8 +521,8 @@ textarea.form-input{height:auto;min-height:90px;padding:12px 14px;resize:vertica
               </div>
             </div>
             <div class="modal-foot" style="padding:0">
-              <button type="button" class="btn btn-cancel" onclick="document.getElementById('backdropResultado').classList.remove('open')">Cancelar</button>
-              <button type="submit" class="btn btn-new">Guardar resultado</button>
+              <button type="button" class="btn btn-outline" onclick="document.getElementById('backdropResultado').classList.remove('open')">Cancelar</button>
+              <button type="submit" class="btn btn-primary">Guardar resultado</button>
             </div>
           </form>
         </div>

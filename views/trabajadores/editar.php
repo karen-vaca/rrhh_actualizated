@@ -302,12 +302,6 @@ if (!empty($trabajador['id_area'])) {
 .page-header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
 /* buttons */
-.btn{height:40px;border-radius:11px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;transition:all .18s;background:var(--white);color:var(--text-mid)}
-.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
-.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
-.btn-primary{background:linear-gradient(135deg,var(--green),var(--green-dim));color:#021a08;border-color:transparent;box-shadow:0 6px 18px rgba(45,223,110,.22)}
-.btn-danger{background:#fff1f2;color:#dc2626;border-color:#fecaca}
-.btn-blue{background:#eff6ff;color:#2563eb;border-color:#bfdbfe}
 
 /* profile view */
 .view-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}
@@ -403,11 +397,11 @@ if (!empty($trabajador['id_area'])) {
       </div>
 
       <div class="page-header-right">
-        <a href="index.php" class="btn">
+        <a href="index.php" class="btn btn-outline">
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
           Volver
         </a>
-        <a href="ver.php?id=<?php echo (int)$trabajador['id_trabajador']; ?>" class="btn">
+        <a href="ver.php?id=<?php echo (int)$trabajador['id_trabajador']; ?>" class="btn btn-outline">
           <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           Ver ficha
         </a>
@@ -751,7 +745,7 @@ if (!empty($trabajador['id_area'])) {
       </div>
 
       <div class="edit-actions">
-        <a href="ver.php?id=<?php echo (int)$trabajador['id_trabajador']; ?>" class="btn">Cancelar</a>
+        <a href="ver.php?id=<?php echo (int)$trabajador['id_trabajador']; ?>" class="btn btn-outline">Cancelar</a>
         <button type="submit" class="btn btn-primary">
           <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
           Guardar cambios

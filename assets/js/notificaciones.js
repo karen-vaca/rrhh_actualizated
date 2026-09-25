@@ -67,7 +67,7 @@
     if (op.titulo) cuerpo.appendChild(crear('div', 'aviso-titulo', op.titulo));
     cuerpo.appendChild(crear('div', 'aviso-texto', op.texto || ''));
     if (op.accion && op.accion.href && op.accion.texto) {
-      var enlace = crear('a', 'aviso-accion', op.accion.texto);
+      var enlace = crear('a', 'btn btn-primary btn-sm aviso-accion', op.accion.texto);
       enlace.href = op.accion.href;
       cuerpo.appendChild(enlace);
     }
@@ -122,8 +122,8 @@
       caja.appendChild(mensaje);
 
       var acciones = crear('div', 'confirmacion-acciones');
-      var no = crear('button', 'confirmacion-cancelar', op.cancelar || 'Cancelar');
-      var si = crear('button', 'confirmacion-aceptar', op.confirmar || 'Confirmar');
+      var no = crear('button', 'btn btn-outline', op.cancelar || 'Cancelar');
+      var si = crear('button', op.peligro ? 'btn btn-danger' : 'btn btn-primary', op.confirmar || 'Confirmar');
       no.type = si.type = 'button';
       acciones.appendChild(no);
       acciones.appendChild(si);

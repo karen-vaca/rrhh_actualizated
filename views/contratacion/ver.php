@@ -97,7 +97,6 @@ $aviso = match ($_GET['mensaje'] ?? '') {
 .nomina-note{font-size:11px;color:var(--text-soft);line-height:1.35;margin-top:10px}
 .nomina-aviso{font-size:11.5px;font-weight:600;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:6px 10px;margin-bottom:8px}
 .badge-estimado{display:inline-block;vertical-align:middle;margin-left:6px;font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:2px 8px}
-.doc-list-item .btn{height:34px;padding:0 12px}
 .form-en-linea{display:inline-flex;margin:0}
 .observaciones{font-size:var(--tx-valor);color:var(--tx-color);line-height:1.55;white-space:pre-line;word-break:break-word}
 </style>
@@ -126,11 +125,11 @@ $aviso = match ($_GET['mensaje'] ?? '') {
         </div>
       </div>
       <div class="page-header-right">
-        <a href="index.php" class="btn">
+        <a href="index.php" class="btn btn-outline">
           <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
           Volver
         </a>
-        <a href="../trabajadores/ver.php?id=<?= $idTrabajador ?>" class="btn">
+        <a href="../trabajadores/ver.php?id=<?= $idTrabajador ?>" class="btn btn-outline">
           <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           Ver trabajador
         </a>
@@ -139,7 +138,7 @@ $aviso = match ($_GET['mensaje'] ?? '') {
             <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
             Editar
           </a>
-          <a href="index.php?abrir=renovar&amp;id=<?= $idContrato ?>" class="btn btn-blue">
+          <a href="index.php?abrir=renovar&amp;id=<?= $idContrato ?>" class="btn btn-outline-info">
             <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
             Renovar
           </a>
@@ -151,7 +150,7 @@ $aviso = match ($_GET['mensaje'] ?? '') {
             <input type="hidden" name="accion" value="terminar">
             <input type="hidden" name="contrato_id" value="<?= $idContrato ?>">
             <input type="hidden" name="volver" value="editar">
-            <button type="submit" class="btn btn-danger">
+            <button type="submit" class="btn btn-outline-danger">
               <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
               Terminar
             </button>
@@ -248,7 +247,7 @@ $aviso = match ($_GET['mensaje'] ?? '') {
                       <div class="doc-list-title"><?= e($nombreDoc) ?></div>
                       <div class="doc-list-meta"><?= isset($generados[$clave]) ? 'Última generación: ' . e($fechaHora($generados[$clave])) : 'Aún no generado' ?></div>
                     </div>
-                    <a class="btn" href="generar_documento.php?tipo=<?= $tipoParam ?>&amp;id=<?= $idContrato ?>" target="_blank" rel="noopener" aria-label="Descargar <?= e(mb_strtolower($nombreDoc)) ?>">Descargar</a>
+                    <a class="btn btn-outline btn-sm" href="generar_documento.php?tipo=<?= $tipoParam ?>&amp;id=<?= $idContrato ?>" target="_blank" rel="noopener" aria-label="Descargar <?= e(mb_strtolower($nombreDoc)) ?>">Descargar</a>
                   </div>
                 <?php endforeach; ?>
               </div>

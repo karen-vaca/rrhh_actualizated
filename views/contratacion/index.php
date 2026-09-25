@@ -225,9 +225,6 @@ requerirAcceso();
   .page-icon svg{width:26px;height:26px;stroke:var(--green-dim);fill:none;stroke-width:1.8}
   .page-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1}
   .page-sub{font-size:var(--tx-subtitulo);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);margin-top:3px}
-  .btn{height:42px;padding:0 16px;border:1px solid var(--border);background:#fff;border-radius:12px;font-family:'DM Sans',sans-serif;font-weight:var(--tx-peso-enfasis);color:var(--text-mid);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;text-decoration:none}
-  .btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2}
-  .btn-primary{background:linear-gradient(135deg,var(--green),var(--green-dim));border-color:transparent;color:#041209;box-shadow:0 10px 22px rgba(45,223,110,.22)}
   .error-box{background:#fff;border-left:4px solid #ef4444;border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);color:#991b1b}
   .filters{display:flex;gap:8px;flex-wrap:wrap}
   .filter-sel{height:36px;border:1px solid var(--border);border-radius:10px;background:#fff;padding:0 36px 0 12px;font-family:'DM Sans',sans-serif;color:var(--text-mid);font-size:13px}
@@ -485,8 +482,6 @@ requerirAcceso();
   /* Ayuda del auxilio de transporte legal */
   .auxilio-legal{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;margin-top:6px;font-size:11.5px;color:var(--text-soft)}
   .auxilio-legal.no-coincide{color:#b45309}
-  .auxilio-legal-btn{border:1px solid var(--border);background:var(--white);border-radius:8px;padding:3px 9px;font-size:11.5px;font-weight:600;color:var(--green-dark);cursor:pointer}
-  .auxilio-legal-btn:hover{background:var(--green-mist)}
   /* Errores por campo: mismo estilo que el formulario de Trabajadores */
   </style>
   </head>
@@ -542,7 +537,7 @@ requerirAcceso();
           </div>
 
           <div class="page-header-right">
-            <a href="../dashboard/dashboard.php" class="btn-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Volver al Panel</a>
+            <a href="../dashboard/dashboard.php" class="btn btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Volver al Panel</a>
             <button class="btn btn-primary" type="button" onclick="nuevoContrato()">
               <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               Nueva contratación
@@ -632,14 +627,14 @@ requerirAcceso();
       <span class="filter-label filter-label-hidden">x</span>
 
       <div class="filter-buttons">
-        <button type="button" class="btn-filter" id="btnFiltrarContratos">
+        <button type="button" class="btn btn-outline" id="btnFiltrarContratos">
           <svg viewBox="0 0 24 24">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
           </svg>
           Filtrar
         </button>
 
-        <button type="button" class="btn-filter btn-clear" id="btnLimpiarContratos">
+        <button type="button" class="btn btn-outline-danger" id="btnLimpiarContratos">
           <svg viewBox="0 0 24 24">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
@@ -963,7 +958,7 @@ requerirAcceso();
                 <input type="hidden" name="auxilio_transporte" id="auxilio_transporte">
                 <div class="auxilio-legal" id="auxilioLegal">
                   <span id="auxilioLegalTexto"></span>
-                  <button type="button" class="auxilio-legal-btn" id="btnAuxilioLegal">Usar valor legal</button>
+                  <button type="button" class="btn btn-outline btn-sm" id="btnAuxilioLegal">Usar valor legal</button>
                 </div>
               </div>
             </div>
@@ -1121,10 +1116,10 @@ requerirAcceso();
 </div>
         <div class="modal-footer">
           <div class="modal-footer-left">
-            <button class="btn" type="button" onclick="cerrarModalContrato()">Cancelar</button>
+            <button class="btn btn-outline" type="button" onclick="cerrarModalContrato()">Cancelar</button>
           </div>
           <div class="modal-footer-right">
-            <button class="btn" type="button" id="btnWizardBack" onclick="wizardAnterior()">Atrás</button>
+            <button class="btn btn-outline" type="button" id="btnWizardBack" onclick="wizardAnterior()">Atrás</button>
             <button class="btn btn-primary" type="button" id="btnWizardNext" onclick="wizardSiguiente()">Siguiente</button>
             <button class="btn btn-primary" type="submit" id="btnGuardarContrato">Guardar contratación</button>
           </div>

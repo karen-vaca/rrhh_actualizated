@@ -444,9 +444,6 @@ $total_filtrado = count($trabajadores);
 .page-icon svg{width:26px;height:26px;stroke:var(--green-dim);fill:none;stroke-width:1.7}
 .page-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1}
 .page-sub{font-size:var(--tx-subtitulo);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);margin-top:3px}
-.btn-new{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--green),var(--green-dim));border:none;border-radius:10px;padding:10px 18px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#021a08;cursor:pointer;text-decoration:none;transition:all .2s;box-shadow:0 3px 14px rgba(45,223,110,0.25)}
-.btn-new:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,223,110,0.35)}
-.btn-new svg{width:16px;height:16px;stroke:#021a08;fill:none;stroke-width:2.5}
 
  
 /* ── MINI STATS ── */
@@ -474,8 +471,6 @@ $total_filtrado = count($trabajadores);
    tooltip propio que aparece al pasar el mouse y también al llegar con el teclado
    (el title nativo no hace esto último ni se ve en celular). El nombre accesible
    siempre lo da aria-label. */
-@media(min-width:1600px){
-}
  
 /* ── PAGINATION ── */
 .pagination{padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
@@ -517,10 +512,6 @@ $total_filtrado = count($trabajadores);
 .form-input:focus,.form-select:focus{border-color:#b6dfc4;box-shadow:0 0 0 3px rgba(45,223,110,0.07)}
 .form-input::placeholder{color:var(--text-soft)}
 .modal-foot{padding:0 24px 22px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:16px}
-.btn-cancel{background:none;border:1px solid var(--border);border-radius:10px;padding:10px 20px;font-size:13px;color:var(--text-mid);cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif}
-.btn-cancel:hover{background:var(--bg)}
-.btn-save{background:linear-gradient(135deg,var(--green),var(--green-dim));border:none;border-radius:10px;padding:10px 22px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#021a08;cursor:pointer;transition:all .2s;box-shadow:0 3px 14px rgba(45,223,110,0.25)}
-.btn-save:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,223,110,0.35)}
  
 /* ── RESPONSIVE EXTRA ── */
 @media(max-width:900px){
@@ -629,38 +620,10 @@ $total_filtrado = count($trabajadores);
   margin-top: 22px;
 }
 
-.btn-confirm-cancel,
-.btn-confirm-ok {
-  border: none;
-  border-radius: 12px;
-  padding: 11px 18px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 13.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all .2s ease;
-}
 
-.btn-confirm-cancel {
-  background: #f8fafc;
-  color: var(--text-mid);
-  border: 1px solid var(--border);
-}
 
-.btn-confirm-cancel:hover {
-  background: #f1f5f9;
-}
 
-.btn-confirm-ok {
-  background: #dc2626;
-  color: #ffffff;
-  box-shadow: 0 8px 22px rgba(220, 38, 38, 0.22);
-}
 
-.btn-confirm-ok:hover {
-  background: #b91c1c;
-  transform: translateY(-1px);
-}
 
 </style>
 <link rel="stylesheet" href="validacion_trabajador.css">
@@ -999,11 +962,11 @@ $total_filtrado = count($trabajadores);
 </div>
 
 <div class="modal-foot">
-    <button type="button" class="btn-cancel" onclick="closeModal()">
+    <button type="button" class="btn btn-outline" onclick="closeModal()">
         Cancelar
     </button>
 
-    <button type="submit" class="btn-save">
+    <button type="submit" class="btn btn-primary">
         Guardar trabajador
     </button>
 </div>
@@ -1044,11 +1007,11 @@ $total_filtrado = count($trabajadores);
     </div>
 
     <div class="confirm-actions">
-      <button type="button" class="btn-confirm-cancel" onclick="cerrarModalInactivar()">
+      <button type="button" class="btn btn-outline" onclick="cerrarModalInactivar()">
         Cancelar
       </button>
 
-      <button type="button" class="btn-confirm-ok" onclick="ejecutarInactivar()">
+      <button type="button" class="btn btn-danger" onclick="ejecutarInactivar()">
         Marcar inactivo
       </button>
     </div>
@@ -1078,8 +1041,8 @@ $total_filtrado = count($trabajadores);
       <div><div class="page-title">Gesti&#243;n de Trabajadores</div><div class="page-sub">Administra la informaci&#243;n de tu equipo de trabajo.</div></div>
     </div>
     <div class="page-header-right">
-      <a href="../dashboard/dashboard.php" class="btn-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Volver al Panel</a>
-      <button class="btn-new" onclick="openModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nuevo Trabajador</button>
+      <a href="../dashboard/dashboard.php" class="btn btn-outline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Volver al Panel</a>
+      <button class="btn btn-primary" onclick="openModal()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nuevo Trabajador</button>
     </div>
   </div>
    <div class="mini-stats">
@@ -1192,14 +1155,14 @@ $total_filtrado = count($trabajadores);
     <div class="filter-group" style="justify-content:flex-end">
       <span class="filter-label filter-label-hidden">x</span>
       <div class="filter-buttons">
-        <button type="button" class="btn-filter" id="btnFiltrarLocal">
+        <button type="button" class="btn btn-outline" id="btnFiltrarLocal">
           <svg viewBox="0 0 24 24">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
           </svg>
           Filtrar
         </button>
 
-        <button type="button" class="btn-filter btn-clear" id="btnLimpiarLocal">
+        <button type="button" class="btn btn-outline-danger" id="btnLimpiarLocal">
           <svg viewBox="0 0 24 24">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
