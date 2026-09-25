@@ -92,18 +92,59 @@ foreach ($pantallas as $p) {
     });
 }
 
+echo "\nSidebar y barra superior vienen de un solo componente\n";
+foreach ($pantallas as $p) {
+    prueba("$p: usa components/sidebar.php y topbar.php, sin copia propia", function () use ($raiz, $p) {
+        $s = file_get_contents("$raiz/$p");
+        afirmar(!preg_match('/<aside[^>]*class="sidebar/', $s), 'Tiene su propio <aside class="sidebar">');
+        afirmar(!str_contains($s, '<header class="topbar"'), 'Tiene su propio <header class="topbar">');
+        afirmar(!str_contains($s, 'class="sidebar-overlay"'), 'Tiene su propia capa .sidebar-overlay');
+        afirmar((bool)preg_match("/require __DIR__ \. '[^']*sidebar\.php'/", $s), 'No incluye sidebar.php');
+        afirmar((bool)preg_match("/require __DIR__ \. '[^']*topbar\.php'/", $s), 'No incluye topbar.php');
+    });
+}
+
+// Menú tal como lo ve el navegador, sin la marca del ítem activo.
+function menuRenderizado(string $html): string {
+    afirmar((bool)preg_match('#<aside class="sidebar".*?</aside>#s', $html, $m), 'No se encontró el sidebar');
+    return preg_replace(['/ active"/', '/ aria-current="page"/'], ['"', ''], $m[0]);
+}
+
 echo "\nLas pantallas cargan las hojas comunes\n";
 $paginas = [
     'views/trabajadores/index.php' => [], 'views/trabajadores/ver.php' => ['id' => '9'],
     'views/trabajadores/editar.php' => ['id' => '9'], 'views/contratacion/index.php' => [],
     'views/novedades/index.php' => [], 'views/perfil_salud/index.php' => [], 'views/examenes/index.php' => [],
     'views/vacaciones/index.php' => [], 'views/dashboard/dashboard.php' => [], 'views/actividades/index.php' => [],
+    'views/incidentes/index.php' => [], 'views/capacitaciones/index.php' => [], 'views/reportes/index.php' => [],
+    'views/indicadores/index.php' => [], 'views/usuarios/index.php' => [], 'views/roles/index.php' => [],
 ];
+$activas = [
+    'views/trabajadores/index.php' => 'Trabajadores', 'views/trabajadores/ver.php' => 'Trabajadores',
+    'views/trabajadores/editar.php' => 'Trabajadores', 'views/contratacion/index.php' => 'Contratación',
+    'views/novedades/index.php' => 'Novedades', 'views/perfil_salud/index.php' => 'Perfil de Salud',
+    'views/examenes/index.php' => 'Exámenes Médicos', 'views/vacaciones/index.php' => 'Vacaciones',
+    'views/dashboard/dashboard.php' => 'Resumen', 'views/actividades/index.php' => 'Resumen',
+    'views/incidentes/index.php' => 'Incidentes', 'views/capacitaciones/index.php' => 'Capacitaciones',
+    'views/reportes/index.php' => 'Reportes', 'views/indicadores/index.php' => 'Indicadores',
+    'views/usuarios/index.php' => 'Usuarios', 'views/roles/index.php' => 'Roles y Permisos',
+];
+$menuReferencia = null;
 foreach ($paginas as $pag => $get) {
-    prueba("$pag: responde 200 con layout.css, tipografia.css y la barra superior", function () use ($pag, $get) {
+    prueba("$pag: responde 200 con layout.css, tipografia.css, el mismo menú y la barra superior", function () use ($pag, $get, $activas, &$menuReferencia) {
         $r = ejecutarComoWeb($pag, $get, 'GET');
         afirmar($r['status'] === 200, "Respondió {$r['status']}");
         $h = $r['cuerpo'];
+        // Menú: 13 opciones, el logo con "Petco" resaltado e idéntico en todas las pantallas.
+        $menu = menuRenderizado($h);
+        afirmar(substr_count($menu, 'class="nav-item"') === 13, 'El menú no tiene 13 opciones');
+        afirmar(str_contains($menu, 'Roles y Permisos') && str_contains($menu, 'Plasty<em>Petco</em>'), 'Falta "Roles y Permisos" o el logo PlastyPetco');
+        $menuReferencia ??= $menu;
+        afirmar($menu === $menuReferencia, 'El menú lateral es distinto al de la primera pantalla');
+        preg_match_all('#class="nav-item active"[^>]*>\s*<svg.*?</svg>([^<]+)#s', $h, $act);
+        $esperada = $activas[$pag];
+        afirmar(array_map('trim', $act[1]) === ($esperada === null ? [] : [$esperada]), 'Ítem activo: ' . json_encode($act[1], JSON_UNESCAPED_UNICODE));
+        afirmar(substr_count($h, 'class="topbar"') === 1 && str_contains($h, 'id="profileWrap"') && str_contains($h, 'class="menu-toggle"'), 'Barra superior incompleta');
         afirmar(str_contains($h, 'href="../../assets/css/layout.css"'), 'No carga layout.css');
         afirmar(str_contains($h, 'href="../../assets/css/tipografia.css"'), 'No carga tipografia.css');
         afirmar(str_contains($h, 'class="topbar-title"'), 'No tiene el título de la barra superior');

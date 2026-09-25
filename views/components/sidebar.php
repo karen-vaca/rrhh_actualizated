@@ -1,3 +1,68 @@
+<?php
+// Menú lateral único de todas las pantallas internas (views/<modulo>/*.php).
+// Antes cada pantalla tenía su propia copia y se desincronizaron (faltaba "Roles y
+// Permisos", cambiaban los íconos, el logo y los enlaces). Ninguna pantalla debe
+// volver a escribir su propio <aside class="sidebar">: tests/LayoutCompartidoTest.php
+// lo verifica.
+//
+// Uso, dentro de <div class="layout">:
+//   $paginaActiva = 'trabajadores';
+//   require __DIR__ . '/../components/sidebar.php';
+// $paginaActiva es una de las claves de $menuLateral (o vacía si ninguna aplica).
+// Los estilos están en assets/css/layout.css.
+
+$paginaActiva = $paginaActiva ?? '';
+
+// Sección => [clave => [texto, enlace, contenido del ícono SVG (24x24)]]
+$menuLateral = [
+    'Principal' => [
+        'dashboard' => ['Resumen', '../dashboard/dashboard.php', '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>'],
+    ],
+    'Gestión' => [
+        'trabajadores' => ['Trabajadores', '../trabajadores/index.php', '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>'],
+        'contratacion' => ['Contratación', '../contratacion/index.php', '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'],
+        'novedades' => ['Novedades', '../novedades/index.php', '<path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>'],
+        'vacaciones' => ['Vacaciones', '../vacaciones/index.php', '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'],
+    ],
+    'SG-SST' => [
+        'perfil_salud' => ['Perfil de Salud', '../perfil_salud/index.php', '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'],
+        'examenes' => ['Exámenes Médicos', '../examenes/index.php', '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'],
+        'incidentes' => ['Incidentes', '../incidentes/index.php', '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'],
+        'capacitaciones' => ['Capacitaciones', '../capacitaciones/index.php', '<path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/>'],
+    ],
+    'Reportes' => [
+        'reportes' => ['Reportes', '../reportes/index.php', '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>'],
+        'indicadores' => ['Indicadores', '../indicadores/index.php', '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'],
+    ],
+    'Configuración' => [
+        'usuarios' => ['Usuarios', '../usuarios/index.php', '<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/>'],
+        'roles' => ['Roles y Permisos', '../roles/index.php', '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>'],
+    ],
+];
+?>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="cerrarMenuLateral()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-head">
-    <div class="sidebar-logo"><img src="data:image/png;base64,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
+    <div class="sidebar-logo"><img src="../../assets/img/logo_plastypetco.png" alt="PlastyPetco"></div>
+    <div class="sidebar-brand">Plasty<em>Petco</em></div>
+  </div>
+  <nav class="sidebar-nav">
+<?php foreach ($menuLateral as $seccionMenu => $itemsMenu): ?>
+    <div class="nav-section"><?= htmlspecialchars($seccionMenu) ?></div>
+<?php foreach ($itemsMenu as $claveMenu => [$textoMenu, $enlaceMenu, $iconoMenu]): ?>
+    <a href="<?= htmlspecialchars($enlaceMenu) ?>" class="nav-item<?= $claveMenu === $paginaActiva ? ' active' : '' ?>"<?= $claveMenu === $paginaActiva ? ' aria-current="page"' : '' ?>>
+      <svg viewBox="0 0 24 24"><?= $iconoMenu ?></svg><?= htmlspecialchars($textoMenu) ?>
+    </a>
+<?php endforeach; ?>
+<?php endforeach; ?>
+  </nav>
+  <div class="sidebar-foot">
+    <a href="../../logout.php" class="nav-logout">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión
+    </a>
+  </div>
+</aside>
+<script>
+function alternarMenuLateral(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')}
+function cerrarMenuLateral(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebarOverlay').classList.remove('open')}
+</script>

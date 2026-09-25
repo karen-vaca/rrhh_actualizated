@@ -86,68 +86,17 @@ $nav = [
 </head>
 <body>
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <div class="layout">
-<!-- ══ SIDEBAR ══ -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-head">
-    <div class="sidebar-logo"><img src="../../assets/img/logo_plastypetco.png" alt="PlastyPetco"></div>
-    <div>
-      <div class="sidebar-brand">Plasty<em>Petco</em></div>
-    </div>
-  </div>
-  <nav class="sidebar-nav">
-<?php foreach ($nav as $seccion => $items): ?>
-    <div class="nav-section"><?= htmlspecialchars($seccion) ?></div>
-<?php foreach ($items as $clave => [$label, $href, $icono]): ?>
-    <a href="<?= $href ?>" class="nav-item<?= $clave === $modulo_activo ? ' active' : '' ?>">
-      <svg viewBox="0 0 24 24"><?= $icono ?></svg><?= htmlspecialchars($label) ?>
-    </a>
-<?php endforeach; ?>
-<?php endforeach; ?>
-  </nav>
-  <div class="sidebar-foot">
-    <a href="../../logout.php" class="nav-logout">
-      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión
-    </a>
-  </div>
-</aside>
+<?php $paginaActiva = $modulo_activo; require __DIR__ . '/sidebar.php'; ?>
 
 <!-- ══ MAIN ══ -->
 <div class="main">
-  <header class="topbar">
-    <div class="topbar-left">
-      <button class="menu-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-      <span class="topbar-title"><?= htmlspecialchars($titulo) ?></span>
-    </div>
-    <div class="topbar-right">
-      <div class="profile-wrap" id="profileWrap">
-        <button class="profile-btn" onclick="toggleProfile()">
-          <div class="profile-avatar"><?= htmlspecialchars($inicial) ?></div>
-          <div class="profile-info">
-            <span class="profile-name"><?= htmlspecialchars($nombres . ' ' . $apellidos) ?></span>
-            <span class="profile-role"><?= htmlspecialchars($rol_nombre) ?></span>
-          </div>
-          <svg class="profile-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="profile-dropdown" id="profileDropdown">
-          <div class="profile-dropdown-head">
-            <div class="profile-avatar-lg"><?= htmlspecialchars($inicial) ?></div>
-            <div>
-              <div style="font-size:13px;font-weight:600;color:var(--text)"><?= htmlspecialchars($nombres . ' ' . $apellidos) ?></div>
-              <div style="font-size:11px;color:var(--green-dim);margin-top:2px"><?= htmlspecialchars($rol_nombre) ?></div>
-            </div>
-          </div>
-          <div class="profile-dropdown-body">
-            <a href="../perfil/editar.php" class="profile-dd-item"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar perfil</a>
-            <div class="profile-dd-sep"></div>
-            <a href="../../logout.php" class="profile-dd-item profile-dd-logout"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+  <?php
+  $tituloTopbar = $titulo;
+  $busquedaTopbar = ['placeholder' => 'Buscar...'];
+  require __DIR__ . '/topbar.php';
+  ?>
 
   <div class="content content-centrada">
     <div class="wip-card">

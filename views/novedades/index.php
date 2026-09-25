@@ -507,147 +507,15 @@ button{cursor:pointer}
   </div>
 <?php endif; ?>
 
-<aside class="sidebar">
-  <div class="sidebar-head">
-    <div class="sidebar-logo">
-      <?php if (trim($logoBase64) !== ''): ?>
-        <img src="data:image/png;base64,<?= e($logoBase64) ?>" alt="PlastyPetco">
-      <?php else: ?>
-        <span class="sidebar-logo-fallback">PP</span>
-      <?php endif; ?>
-    </div>
-    <div>
-      <div class="sidebar-brand">Plasty<em>Petco</em></div>   
-    </div>
-  </div>
-
-  <nav class="sidebar-nav">
-    <div class="nav-section">Principal</div>
-    <a class="nav-item" href="../dashboard/dashboard.php">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Resumen
-    </a>
-
-    <div class="nav-section">Gestión</div>
-    <a class="nav-item" href="../trabajadores/index.php">
-      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-      Trabajadores
-    </a>
-    <a class="nav-item" href="../contratacion/index.php">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-      Contratación
-    </a>
-    <a class="nav-item active" href="index.php">
-      <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-      Novedades
-    </a>
-    <a class="nav-item" href="../vacaciones/index.php">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Vacaciones
-    </a>
-
-    <div class="nav-section">SG-SST</div>
-    <a class="nav-item" href="../perfil_salud/index.php">
-      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Perfil de Salud
-    </a>
-    <a class="nav-item" href="../examenes/index.php">
-      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-      Exámenes Médicos
-    </a>
-    <a class="nav-item" href="../incidentes/index.php">
-      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      Incidentes
-    </a>
-    <a class="nav-item" href="../capacitaciones/index.php">
-      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M4 4.5A2.5 2.5 0 016.5 2H20v20H6.5A2.5 2.5 0 014 19.5z"/></svg>
-      Capacitaciones
-    </a>
-
-    <div class="nav-section">Reportes</div>
-    <a class="nav-item" href="../reportes/index.php">
-      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Reportes
-    </a>
-    <a class="nav-item" href="../indicadores/index.php">
-      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-      Indicadores
-    </a>
-
-    <div class="nav-section">Configuración</div>
-    <a class="nav-item" href="../usuarios/index.php">
-      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Usuarios
-    </a>
-  </nav>
-
-  <div class="sidebar-foot">
-    <a class="nav-logout" href="../../logout.php">
-      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Cerrar sesión
-    </a>
-  </div>
-</aside>
+<?php $paginaActiva = 'novedades'; require __DIR__ . '/../components/sidebar.php'; ?>
 
 <main class="main">
-  <header class="topbar">
-    <div class="topbar-left">
-      <button class="menu-toggle" type="button" aria-label="Abrir menú">
-        <svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
-      </button>
-      <h2 class="topbar-title">Novedades</h2>
-    </div>
-
-    <div class="search-bar">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="busquedaTop" type="text" placeholder="Buscar novedades, trabajadores..." oninput="sincronizarBusqueda(this.value)">
-      <span class="search-kbd">Ctrl+K</span>
-    </div>
-
-    <div class="topbar-right">
-      <button class="notif-btn" type="button" title="Novedades pendientes">
-        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <?php if ((int)($stats['pendientes'] ?? 0) > 0): ?>
-          <span class="notif-badge"><?= (int)$stats['pendientes'] ?></span>
-        <?php endif; ?>
-      </button>
-
-      <div class="profile-wrap" id="profileWrap">
-        <button class="profile-btn" type="button" onclick="toggleProfileMenu(event)">
-          <span class="profile-avatar"><?= e($inicialSesion) ?></span>
-          <span class="profile-info">
-            <span class="profile-name"><?= e($nombreSesionCompleto !== '' ? $nombreSesionCompleto : 'Administrador') ?></span>
-            <span class="profile-role"><?= e($rolSesion) ?></span>
-          </span>
-          <svg class="profile-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-        <div class="profile-dropdown">
-          <div class="profile-dropdown-head">
-            <span class="profile-avatar-lg"><?= e($inicialSesion) ?></span>
-            <span class="profile-info">
-              <span class="profile-name"><?= e($nombreSesionCompleto !== '' ? $nombreSesionCompleto : 'Administrador') ?></span>
-              <span class="profile-role"><?= e($rolSesion) ?></span>
-            </span>
-          </div>
-          <div class="profile-dropdown-body">
-            <a class="profile-dd-item" href="../usuarios/index.php">
-              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              Usuarios
-            </a>
-            <a class="profile-dd-item" href="../dashboard/dashboard.php">
-              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-              Panel principal
-            </a>
-            <div class="profile-dd-sep"></div>
-            <a class="profile-dd-item profile-dd-logout" href="../../logout.php">
-              <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              Cerrar sesión
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+  <?php
+  $tituloTopbar = 'Novedades';
+  $busquedaTopbar = ['placeholder' => 'Buscar novedades, trabajadores...', 'id' => 'busquedaTop', 'oninput' => 'sincronizarBusqueda(this.value)'];
+  $notificacionesTopbar = (int)($stats['pendientes'] ?? 0);
+  require __DIR__ . '/../components/topbar.php';
+  ?>
 
   <div class="content-area">
   <section class="page-header">

@@ -253,110 +253,17 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
 </head>
 <body>
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
 <div class="layout">
-<!-- ══ SIDEBAR ══ -->
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-head">
-    <div class="sidebar-logo"><img src="../../assets/img/logo_plastypetco.png" alt="PlastyPetco"></div>
-    <div>
-      <div class="sidebar-brand">Plasty<em>Petco</em></div>
-    </div>
-  </div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">Principal</div>
-    <a href="../dashboard/dashboard.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>Resumen
-    </a>
-    <div class="nav-section">Gestión</div>
-    <a href="../trabajadores/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Trabajadores
-    </a>
-    <a href="../contratacion/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Contratación
-    </a>
-    <a href="../novedades/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Novedades
-    </a>
-    <a href="index.php" class="nav-item active">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Vacaciones
-    </a>
-    <div class="nav-section">SG-SST</div>
-    <a href="../perfil_salud/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Perfil de Salud
-    </a>
-    <a href="../examenes/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Exámenes Médicos
-    </a>
-    <a href="../incidentes/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Incidentes
-    </a>
-    <a href="../capacitaciones/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>Capacitaciones
-    </a>
-    <div class="nav-section">Reportes</div>
-    <a href="../reportes/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Reportes
-    </a>
-    <a href="../indicadores/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Indicadores
-    </a>
-    <div class="nav-section">Configuración</div>
-    <a href="../usuarios/index.php" class="nav-item">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 10-16 0"/></svg>Usuarios
-    </a>
-  </nav>
-  <div class="sidebar-foot">
-    <a href="../../logout.php" class="nav-logout">
-      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión
-    </a>
-  </div>
-</aside>
+<?php $paginaActiva = 'vacaciones'; require __DIR__ . '/../components/sidebar.php'; ?>
 
 <!-- ══ MAIN ══ -->
 <div class="main">
-  <header class="topbar">
-    <div class="topbar-left">
-      <button class="menu-toggle" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-      <span class="topbar-title">Vacaciones</span>
-    </div>
-    <div class="search-bar">
-      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" placeholder="Buscar solicitudes, trabajadores..."/>
-      <span class="search-kbd">Ctrl+K</span>
-    </div>
-    <div class="topbar-right">
-      <button class="notif-btn">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-        <span class="notif-badge">2</span>
-      </button>
-      <div class="profile-wrap" id="profileWrap">
-        <button class="profile-btn" onclick="toggleProfile()">
-          <div class="profile-avatar"><?= $inicial ?></div>
-          <div class="profile-info">
-            <span class="profile-name"><?= htmlspecialchars($nombres . ' ' . $apellidos) ?></span>
-            <span class="profile-role"><?= htmlspecialchars($rol_nombre) ?></span>
-          </div>
-          <svg class="profile-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="profile-dropdown" id="profileDropdown">
-          <div class="profile-dropdown-head">
-            <div class="profile-avatar-lg"><?= $inicial ?></div>
-            <div>
-              <div style="font-size:13px;font-weight:600;color:var(--text)"><?= htmlspecialchars($nombres . ' ' . $apellidos) ?></div>
-              <div style="font-size:11px;color:var(--green-dim);margin-top:2px"><?= htmlspecialchars($rol_nombre) ?></div>
-            </div>
-          </div>
-          <div class="profile-dropdown-body">
-            <a href="../perfil/editar.php" class="profile-dd-item"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editar perfil</a>
-            <div class="profile-dd-sep"></div>
-            <a href="../../logout.php" class="profile-dd-item profile-dd-logout"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesión</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </header>
+  <?php
+  $tituloTopbar = 'Vacaciones';
+  $busquedaTopbar = ['placeholder' => 'Buscar solicitudes, trabajadores...'];
+  require __DIR__ . '/../components/topbar.php';
+  ?>
 
   <div class="content">
 

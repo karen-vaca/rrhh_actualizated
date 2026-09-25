@@ -110,6 +110,8 @@ body{font-family:var(--tx-fuente-texto);background:var(--content-bg);color:var(-
 @keyframes ddIn{from{opacity:0;transform:translateY(-6px) scale(.97)}to{opacity:1;transform:none}}
 .profile-dropdown-head{padding:14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);background:var(--content-bg)}
 .profile-avatar-lg{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-family:var(--tx-fuente-titulos);font-size:16px;font-weight:800;color:#021a08;flex-shrink:0}
+.profile-dd-nombre{font-size:13px;font-weight:600;color:var(--text)}
+.profile-dd-rol{font-size:11px;color:var(--green-dim);margin-top:2px}
 .profile-dropdown-body{padding:6px}
 .profile-dd-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;font-size:13px;color:var(--text-mid);text-decoration:none;transition:background .15s,color .15s}
 .profile-dd-item svg{width:14px;height:14px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8}
