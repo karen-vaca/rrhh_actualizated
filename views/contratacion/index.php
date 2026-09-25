@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../config/auth.php';
+require_once __DIR__ . '/../components/avatar.php';
 requerirAcceso();
   ini_set('display_errors', 1);
   ini_set('display_startup_errors', 1);
@@ -22,9 +23,7 @@ requerirAcceso();
   $conexion->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
   $conexion->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
 
-  function e($valor): string {
-      return htmlspecialchars((string)$valor, ENT_QUOTES, 'UTF-8');
-  }
+  require_once __DIR__ . '/funciones_contrato.php';
 
   function firstChar(string $text): string {
       $text = trim($text);
@@ -70,60 +69,6 @@ requerirAcceso();
       return baseUrl($paths[0] ?? '');
   }
 
-  function fmtFecha($fecha): string {
-      if (!$fecha || $fecha === '0000-00-00') return '—';
-      $time = strtotime((string)$fecha);
-      return $time ? date('d/m/Y', $time) : '—';
-  }
-
-  function fmtMoney($valor): string {
-      return '$' . number_format((float)$valor, 0, ',', '.');
-  }
-
-  function calcularNominaMensual($salarioBase, $auxilioTransporte): array {
-      $salario = max(0, (float)$salarioBase);
-      $auxilio = max(0, (float)$auxilioTransporte);
-      $salud = round($salario * 0.04);
-      $pension = round($salario * 0.04);
-      $totalDevengado = $salario + $auxilio;
-      $totalDeducciones = $salud + $pension;
-
-      return [
-          'salario_base' => $salario,
-          'auxilio_transporte' => $auxilio,
-          'total_devengado' => $totalDevengado,
-          'salud' => $salud,
-          'pension' => $pension,
-          'total_deducciones' => $totalDeducciones,
-          'neto_pagar' => $totalDevengado - $totalDeducciones,
-      ];
-  }
-
-  function estadoVisual(?string $estadoDb, ?string $fechaFin): string {
-      if ($estadoDb === 'Terminado') return 'Terminado';
-
-      if ($fechaFin && $fechaFin !== '0000-00-00') {
-          $hoy = new DateTimeImmutable('today');
-          $fin = DateTimeImmutable::createFromFormat('Y-m-d', $fechaFin);
-          if ($fin) {
-              if ($fin < $hoy) return 'Vencido';
-              if ($fin <= $hoy->modify('+30 days')) return 'Por vencer';
-          }
-      }
-
-      return 'Activo';
-  }
-
-  function badgeClass(string $estado): string {
-      return match ($estado) {
-          'Activo' => 'status-active',
-          'Por vencer' => 'status-warning',
-          'Vencido', 'Inactivo' => 'status-danger',
-          'Terminado' => 'status-muted',
-          default => 'status-muted',
-      };
-  }
-
   function mensajeTexto(?string $mensaje): ?string {
       return match ($mensaje) {
           'creado' => 'Contratación registrada correctamente.',
@@ -138,19 +83,6 @@ requerirAcceso();
           'error' => 'Ocurrió un error al procesar la solicitud.',
           default => null,
       };
-  }
-
-  function columnasTabla(PDO $conexion, string $tabla): array {
-      try {
-          $stmt = $conexion->query("SHOW COLUMNS FROM `$tabla`");
-          return array_column($stmt->fetchAll(), 'Field');
-      } catch (Throwable $e) {
-          return [];
-      }
-  }
-
-  function tieneColumna(array $columnas, string $columna): bool {
-      return in_array($columna, $columnas, true);
   }
 
   $nombres = $_SESSION['nombres'] ?? $_SESSION['nombre'] ?? 'Usuario';
@@ -234,96 +166,12 @@ requerirAcceso();
           ORDER BY t.nombres ASC, t.apellidos ASC
       ")->fetchAll();
 
-      $colsContratos = columnasTabla($conexion, 'contratos');
-
-      $areaExpr = tieneColumna($colsContratos, 'id_area')
-          ? 'COALESCE(co.id_area, t.id_area)'
-          : 't.id_area';
-
-      $cargoExpr = tieneColumna($colsContratos, 'id_cargo')
-          ? 'COALESCE(co.id_cargo, t.id_cargo)'
-          : 't.id_cargo';
-
-      $tipoJoin = tieneColumna($colsContratos, 'id_tipos_contrato')
-          ? 'LEFT JOIN tipos_contrato tc ON co.id_tipos_contrato = tc.id_tipos_contrato'
-          : '';
-
-      if (tieneColumna($colsContratos, 'id_tipos_contrato')) {
-          $tipoSelect = 'tc.contrato AS tipo_contrato';
-      } elseif (tieneColumna($colsContratos, 'tipo_contrato')) {
-          $tipoSelect = 'co.tipo_contrato AS tipo_contrato';
-      } else {
-          $tipoSelect = "'Sin tipo' AS tipo_contrato";
-      }
-
-      $contratos = $conexion->query("
-          SELECT 
-              co.*,
-              t.nombres,
-              t.apellidos,
-              t.numero_documento,
-              t.estado AS estado_trabajador,
-              $areaExpr AS id_area_final,
-              $cargoExpr AS id_cargo_final,
-              a.nombre_area,
-              ca.nombre_cargo,
-              $tipoSelect
-          FROM contratos co
-          LEFT JOIN trabajadores t ON co.id_trabajador = t.id_trabajador
-          LEFT JOIN areas a ON $areaExpr = a.id_areas
-          LEFT JOIN cargos ca ON $cargoExpr = ca.id_cargo
-          $tipoJoin
-          ORDER BY co.id_contrato DESC
-      ")->fetchAll();
+      $contratos = consultarContratos($conexion);
 
   } catch (Throwable $e) {
       $errorCarga = $e->getMessage();
   }
 
-  $avatarClases = [
-      'avatar-green',
-      'avatar-blue',
-      'avatar-purple',
-      'avatar-orange',
-      'avatar-teal',
-      'avatar-red'
-  ];
-
-  foreach ($contratos as &$contrato) {
-      $contrato['trabajador_nombre'] = trim(($contrato['nombres'] ?? '') . ' ' . ($contrato['apellidos'] ?? ''));
-
-      $contrato['iniciales'] = inicialesPersona(
-          $contrato['nombres'] ?? '',
-          $contrato['apellidos'] ?? ''
-      );
-
-      $indexAvatar = abs((int)($contrato['id_trabajador'] ?? 0)) % count($avatarClases);
-      $contrato['avatar_class'] = $avatarClases[$indexAvatar];
-
-      $contrato['area'] = $contrato['nombre_area'] ?? 'Sin área';
-      $contrato['cargo'] = $contrato['nombre_cargo'] ?? 'Sin cargo';
-
-      if (!isset($contrato['id_area'])) {
-          $contrato['id_area'] = $contrato['id_area_final'] ?? null;
-      }
-
-      if (!isset($contrato['id_cargo'])) {
-          $contrato['id_cargo'] = $contrato['id_cargo_final'] ?? null;
-      }
-
-      $estadoTrabajador = (int)($contrato['estado_trabajador'] ?? 1);
-
-      if ($estadoTrabajador === 0) {
-          $contrato['estado_mostrar'] = 'Inactivo';
-      } else {
-          $contrato['estado_mostrar'] = estadoVisual($contrato['estado'] ?? null, $contrato['fecha_fin'] ?? null);
-      }
-
-      if (($contrato['tipo_contrato'] ?? '') === '') {
-          $contrato['tipo_contrato'] = 'Sin tipo';
-      }
-  }
-  unset($contrato);
 
   $stats = [
       'activos' => count(array_filter($contratos, fn($c) => ($c['estado_mostrar'] ?? '') === 'Activo')),
@@ -352,21 +200,11 @@ requerirAcceso();
   $areasJson = safeJsonEncode($areas);
   $cargosJson = safeJsonEncode($cargos);
 
-  $verContratoId = isset($_GET['ver_contrato']) ? (int)$_GET['ver_contrato'] : 0;
-  $contratoVer = null;
-
-  if ($verContratoId > 0) {
-      foreach ($contratos as $contratoTmp) {
-          if ((int)($contratoTmp['id_contrato'] ?? 0) === $verContratoId) {
-              $contratoVer = $contratoTmp;
-              break;
-          }
-      }
+  // Enlaces antiguos al panel lateral (?ver_contrato=ID): ahora la ficha es una página propia.
+  if (isset($_GET['ver_contrato'])) {
+      header('Location: ver.php?id=' . (int)$_GET['ver_contrato']);
+      exit;
   }
-
-  $nominaVer = $contratoVer
-      ? calcularNominaMensual($contratoVer['salario_base'] ?? 0, $contratoVer['auxilio_transporte'] ?? 0)
-      : calcularNominaMensual(0, 0);
 
   $mensaje = mensajeTexto($_GET['mensaje'] ?? null);
   $detalle = $_GET['detalle'] ?? '';
@@ -390,31 +228,16 @@ requerirAcceso();
   .btn{height:42px;padding:0 16px;border:1px solid var(--border);background:#fff;border-radius:12px;font-family:'DM Sans',sans-serif;font-weight:var(--tx-peso-enfasis);color:var(--text-mid);display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;text-decoration:none}
   .btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2}
   .btn-primary{background:linear-gradient(135deg,var(--green),var(--green-dim));border-color:transparent;color:#041209;box-shadow:0 10px 22px rgba(45,223,110,.22)}
-  .toast-sistema{position:fixed;top:82px;right:24px;z-index:9999;background:#fff;border:1px solid var(--border);box-shadow:var(--shadow-md);border-left:4px solid var(--green);border-radius:14px;padding:13px 16px;min-width:280px;max-width:420px}
-  .toast-title{font-size:13px;font-weight:var(--tx-peso-titulo);color:var(--text)}.toast-sub{font-size:12px;color:var(--text-soft);margin-top:4px}
   .error-box{background:#fff;border-left:4px solid #ef4444;border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);color:#991b1b}
-  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .stat-card{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-  .stat-card::before{content:'';position:absolute;inset:0 0 auto;height:4px;background:var(--green)}
-  .stat-card.warning::before{background:#f59e0b}.stat-card.danger::before{background:#ef4444}.stat-card.info::before{background:#3b82f6}
-  .stat-lbl{font-size:var(--tx-etiqueta);font-weight:var(--tx-peso-enfasis);color:var(--tx-color-suave);text-transform:uppercase;letter-spacing:.7px}
-  .stat-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-top:10px}
-  .stat-sub{font-size:12px;color:var(--text-soft);margin-top:4px}
-  .card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
-  .card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .card-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-seccion);font-weight:var(--tx-peso-titulo);color:var(--tx-color);letter-spacing:-.2px}
   .filters{display:flex;gap:8px;flex-wrap:wrap}
   .filter-sel{height:36px;border:1px solid var(--border);border-radius:10px;background:#fff;padding:0 36px 0 12px;font-family:'DM Sans',sans-serif;color:var(--text-mid);font-size:13px}
-  .table-wrap{width:100%;overflow-x:auto}
-  table{width:100%;border-collapse:collapse;min-width:1080px}
-  th{background:#fbfdfb;color:var(--text-soft);font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;text-align:left;padding:12px 14px;border-bottom:1px solid var(--border)}
-  td{padding:14px;border-bottom:1px solid var(--border);vertical-align:middle}
-  tbody tr:last-child td{border-bottom:0}
-  .worker-cell{display:flex;align-items:center;gap:10px;min-width:230px;white-space:nowrap}
-  .worker-avatar{width:44px;height:44px;min-width:44px;min-height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:#fff;font-size:14px;line-height:1;box-shadow:0 8px 18px rgba(0,0,0,.16);flex-shrink:0}
-  .avatar-green{background:#16a34a}.avatar-blue{background:#2563eb}.avatar-purple{background:#7c3aed}.avatar-orange{background:#f59e0b}.avatar-teal{background:#0f766e}.avatar-red{background:#ef4444}
-  .w-name{font-size:var(--tx-valor);font-weight:var(--tx-peso-enfasis);color:var(--tx-color)}.w-id{font-size:var(--tx-ayuda-chica);color:var(--text-soft);margin-top:3px}
   .cell-main{font-size:var(--tx-valor);font-weight:var(--tx-peso-normal)}.cell-sub{font-size:var(--tx-ayuda-chica);color:var(--text-soft);margin-top:3px}
+  .empty-state{text-align:center;padding:32px;color:var(--text-soft);font-size:13px}
+  /* Renovar: trabajador fijo */
+  .trabajador-search-input.trabajador-fijo{background:#f6f9f7;color:var(--text-mid);cursor:not-allowed}
+  .trabajador-fijo-nota{margin-top:6px;font-size:var(--tx-ayuda-chica);color:var(--tx-color-suave)}
+  /* 8 columnas: la tabla se desplaza dentro de su tarjeta en pantallas angostas */
+  #tablaContratos{min-width:1080px}
   .tipo-tag{background:#eef2ff;color:#3730a3;padding:4px 8px;border-radius:999px;font-size:var(--tx-insignia);font-weight:var(--tx-peso-medio);display:inline-flex;white-space:nowrap}
   .salary{font-size:var(--tx-valor);font-weight:var(--tx-peso-enfasis)}.salary-aux{font-size:var(--tx-ayuda-chica);color:var(--text-soft);margin-top:3px}
   .status-pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 11px;font-size:12px;font-weight:var(--tx-peso-titulo)}
@@ -423,12 +246,6 @@ requerirAcceso();
   .status-warning{background:#fff7ed;color:#ea580c;border:1px solid #fed7aa}
   .status-danger{background:#fff1f2;color:#ef4444;border:1px solid #fecdd3}
   .status-muted{background:#f3f4f6;color:#64748b;border:1px solid #e5e7eb}
-  .actions{display:flex;align-items:center;gap:8px;white-space:nowrap}
-  .act-btn{width:32px;height:32px;border:1px solid var(--border);background:#fff;border-radius:10px;color:var(--text-mid);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none}
-  .act-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8}
-  .act-btn:hover{background:#f4faf6;color:var(--green-dark)}
-  .act-btn.stop:hover{background:#fff1f2;color:#ef4444;border-color:#fecdd3}
-  .empty-state{text-align:center;padding:32px;color:var(--text-soft);font-size:13px}
   .overlay{position:fixed;inset:0;background:rgba(5,14,7,.55);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;z-index:9999;padding:38px 16px}
   .overlay.open{display:flex}
   .modal{width:min(900px,100%);max-height:88vh;overflow-y:auto;background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 24px 70px rgba(0,0,0,.2)}
@@ -469,66 +286,11 @@ requerirAcceso();
   .review-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}.review-card{background:#fbfdfb;border:1px solid var(--border);border-radius:14px;padding:12px}.review-label{font-size:var(--tx-etiqueta);font-weight:var(--tx-peso-enfasis);color:var(--tx-color-suave);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}.review-value{font-size:var(--tx-valor);font-weight:var(--tx-peso-normal);color:var(--tx-color)}.review-card.full{grid-column:1/-1}
   .view-tabs{display:flex;gap:8px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:10px}.view-tab{height:34px;border:1px solid var(--border);border-radius:999px;background:#fff;color:var(--text-mid);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:var(--tx-peso-enfasis);padding:0 12px;cursor:pointer}.view-tab.active{background:#ecfdf3;border-color:#baf7cf;color:#128a3d}.view-tab-panel{display:none}.view-tab-panel.active{display:block}.doc-list{display:flex;flex-direction:column;gap:10px}.doc-list-item{display:flex;align-items:center;gap:12px;background:#fbfdfb;border:1px solid var(--border);border-radius:14px;padding:12px}.doc-list-info{flex:1;min-width:0}.doc-list-title{font-size:13px;font-weight:var(--tx-peso-enfasis)}.doc-list-meta{font-size:11px;color:var(--text-soft);margin-top:3px}.doc-status{display:inline-flex;align-items:center;border-radius:999px;background:#ecfdf3;color:#128a3d;border:1px solid #baf7cf;font-size:10.5px;font-weight:var(--tx-peso-titulo);padding:4px 8px}
   @media(max-width:900px){.doc-grid,.review-grid{grid-template-columns:1fr}.review-card.full{grid-column:auto}.wizard-steps{align-items:flex-start}.wizard-step{font-size:11px}.wizard-step:not(:last-child)::after{display:none}.wizard-step span:last-child{white-space:normal}}
-  @media(max-width:1050px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:900px){.form-grid,.form-grid.g3{grid-template-columns:1fr}.span2{grid-column:auto}}
-  @media(max-width:620px){.stats-grid{grid-template-columns:1fr}.page-title{font-size:var(--tx-titulo-pagina)}.filters{width:100%}.filter-sel{width:100%}}
+  @media(max-width:620px){.page-title{font-size:var(--tx-titulo-pagina)}.filters{width:100%}.filter-sel{width:100%}}
 
   /* PANEL SOLO VER CONTRATO + RESUMEN DE NÓMINA */
-  .view-overlay{
-    pointer-events:none;
-    position:fixed;
-    top:0;
-    right:0;
-    bottom:0;
-    left:var(--sidebar-w);
-    width:calc(100vw - var(--sidebar-w));
-    background:rgba(2,13,7,.42);
-    backdrop-filter:blur(5px);
-    z-index:90;
-    display:none;
-    justify-content:flex-end;
-  }
-  .view-overlay.open{
-    pointer-events:auto;
-    display:flex;
-  }
-  .view-drawer{
-    width:430px;
-    max-width:calc(100vw - 18px);
-    height:100vh;
-    background:#fff;
-    box-shadow:-22px 0 60px rgba(0,0,0,.22);
-    overflow-y:auto;
-    animation:viewSlide .22s ease both;
-  }
   @keyframes viewSlide{from{transform:translateX(100%)}to{transform:translateX(0)}}
-  .view-head{
-    height:64px;
-    padding:0 22px;
-    border-bottom:1px solid var(--border);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    position:sticky;
-    top:0;
-    background:#fff;
-    z-index:2;
-  }
-  .view-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-modal);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color)}
-  .view-close{width:34px;height:34px;border:1px solid var(--border);border-radius:11px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .view-close svg{width:18px;height:18px;stroke:var(--text-mid);fill:none;stroke-width:2}
-  .view-body{padding:22px}
-  .view-worker{display:flex;align-items:center;gap:14px;padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid var(--border)}
-  .view-avatar{width:54px;height:54px;min-width:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;color:#fff;font-size:16px;box-shadow:0 10px 22px rgba(0,0,0,.16)}
-  .view-worker-name{font-size:var(--tx-titulo-seccion);font-weight:var(--tx-peso-enfasis);color:var(--tx-color);line-height:1.18}
-  .view-worker-sub{font-size:var(--tx-ayuda);color:var(--text-soft);margin-top:4px}
-  .view-section{margin-bottom:20px}
-  .view-section-title{font-size:var(--tx-etiqueta);font-weight:var(--tx-peso-titulo);letter-spacing:.8px;text-transform:uppercase;color:#008c3b;padding-bottom:9px;margin-bottom:12px;border-bottom:1px solid rgba(45,223,110,.18)}
-  .view-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .view-card{background:#fbfdfb;border:1px solid var(--border);border-radius:14px;padding:12px}
-  .view-card.full{grid-column:1/-1}
-  .view-label{font-size:var(--tx-etiqueta);font-weight:var(--tx-peso-enfasis);color:var(--tx-color-suave);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px}
-  .view-value{font-size:var(--tx-valor);font-weight:var(--tx-peso-normal);color:var(--tx-color);line-height:1.35;word-break:break-word}
   .nomina-box{background:#f7fffa;border:1px solid rgba(45,223,110,.28);border-radius:18px;padding:15px}
   .nomina-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 0;font-size:13.5px;color:var(--text-mid)}
   .nomina-row strong{color:var(--text);font-weight:var(--tx-peso-enfasis)}
@@ -538,29 +300,16 @@ requerirAcceso();
   .nomina-note{font-size:11px;color:var(--text-soft);line-height:1.35;margin-top:10px}
   .nomina-aviso{font-size:11.5px;font-weight:600;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:6px 10px;margin-bottom:8px}
   .badge-estimado{display:inline-block;vertical-align:middle;margin-left:6px;font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#92400e;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:2px 8px}
-  @media(max-width:620px){.view-drawer{width:100%}.view-grid{grid-template-columns:1fr}}
 
   body.modal-open{overflow:hidden;}
-  .view-overlay.open{display:flex !important;}
 
   /* FIX navegación: el panel de ver no tapa el sidebar en escritorio */
-  @media(max-width:900px){
-    .view-overlay{
-      left:0;
-      width:100vw;
-      z-index:10000;
-    }
-  }
 
   /* seguridad para que los overlays no bloqueen el menú cuando están cerrados */
-  .overlay,.view-overlay{pointer-events:none}
-  .overlay.open,.view-overlay.open{pointer-events:auto}
+  .overlay{pointer-events:none}
+  .overlay.open{pointer-events:auto}
 
   /* ── BUSCADOR LOCAL EN CONTRATACIÓN ── */
-  .card-head-search {
-    gap: 14px;
-    align-items: center;
-  }
 
   .contract-search-wrap {
     flex: 1;
@@ -605,220 +354,16 @@ requerirAcceso();
   }
 
   @media(max-width: 900px) {
-    .card-head-search {
-      flex-direction: column;
-      align-items: stretch;
-    }
 
     .contract-search-wrap {
       width: 100%;
       min-width: 100%;
     }
 
-    .card-head-search .filters {
-      width: 100%;
-      flex-wrap: wrap;
-    }
-
-    .card-head-search .filter-sel {
-      flex: 1;
-      min-width: 150px;
-    }
   }
   /* ── FILTRO TIPO TRABAJADORES PARA CONTRATACIÓN ── */
-  .contratos-filter-bar {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 14px 18px;
-    display: flex;
-    align-items: flex-end;
-    gap: 12px;
-    flex-wrap: wrap;
-    box-shadow: var(--shadow);
-  }
-
-  .contratos-filter-bar .filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .contratos-filter-bar .filter-search-main {
-    flex: 1;
-    min-width: 360px;
-  }
-
-  .contratos-filter-bar .filter-label {
-    font-size: 10.5px;
-    font-weight: 700;
-    color: var(--text-soft);
-    text-transform: uppercase;
-    letter-spacing: .5px;
-  }
-
-  .contratos-filter-bar .filter-label-hidden {
-    visibility: hidden;
-  }
-
-  .contratos-filter-bar .search-wrap {
-    width: 100%;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 9px 14px;
-    transition: border-color .2s, box-shadow .2s;
-  }
-
-  .contratos-filter-bar .search-wrap:focus-within {
-    border-color: #b6dfc4;
-    box-shadow: 0 0 0 3px rgba(45,223,110,0.07);
-  }
-
-  .contratos-filter-bar .search-wrap svg {
-    width: 15px;
-    height: 15px;
-    stroke: var(--text-soft);
-    fill: none;
-    stroke-width: 1.8;
-    flex-shrink: 0;
-  }
-
-  .contratos-filter-bar .search-wrap input {       
-    width: 100%;
-    background: none;
-    border: none;
-    outline: none;
-    font-size: 13.5px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .contratos-filter-bar .search-wrap input::placeholder {
-    color: var(--text-soft);
-  }
-
-  .contratos-filter-bar .filter-select {
-    height: 40px;
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0 32px 0 12px;
-    font-size: 13px;
-    color: var(--text-mid);
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer;
-    appearance: none;
-    min-width: 170px;
-  }
-
-  .contratos-filter-bar .filter-select:focus {
-    outline: none;
-    border-color: #b6dfc4;
-  }
-
-  .contratos-filter-bar .filter-buttons {
-    display: flex;
-    gap: 8px;
-  }
-
-  .contratos-filter-bar .btn-filter {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: 40px;
-    background: #ffffff;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0 16px;
-    font-size: 13px;
-    color: var(--text-mid);
-    cursor: pointer;
-    transition: all .2s;
-    white-space: nowrap;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .contratos-filter-bar .btn-filter:hover {
-    border-color: #b6dfc4;
-    background: #f0f8f3;
-  }
-
-  .contratos-filter-bar .btn-filter svg {
-    width: 14px;
-    height: 14px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 1.8;
-  }
-
-  .contratos-filter-bar .btn-clear {
-    color: #dc2626;
-    border-color: #fecaca;
-  }
-
-  .contratos-filter-bar .btn-clear:hover {
-    background: #fff1f2;
-    border-color: #fca5a5;
-  }
-
-  @media(max-width:900px) {
-    .contratos-filter-bar {
-      align-items: stretch;
-    }
-
-    .contratos-filter-bar .filter-search-main {
-      min-width: 100%;
-    }
-
-    .contratos-filter-bar .filter-group {
-      flex: 1;
-      min-width: 150px;
-    }
-
-    .contratos-filter-bar .filter-buttons-group {
-      min-width: 100%;
-    }
-
-    .contratos-filter-bar .filter-buttons {
-      width: 100%;
-    }
-
-    .contratos-filter-bar .btn-filter {
-      flex: 1;
-      justify-content: center;
-    }
-  }
 
   /* ── FONDO DE TABLA CONTRATACIÓN ── */
-  .contratos-table-card {
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    margin-top: 0;
-  }
-
-  .contratos-table-card table {
-    background: var(--white);
-  }
-
-  .contratos-table-card thead tr {
-    background: #f7fbf8;
-  }
-
-  .contratos-table-card tbody tr {
-    background: var(--white);
-  }
-
-  .contratos-table-card tbody tr:hover {
-    background: #f7fbf8;
-  }
 
       .field-help{
         font-size:11.5px;
@@ -943,24 +488,25 @@ requerirAcceso();
   .auxilio-legal-btn{border:1px solid var(--border);background:var(--white);border-radius:8px;padding:3px 9px;font-size:11.5px;font-weight:600;color:var(--green-dark);cursor:pointer}
   .auxilio-legal-btn:hover{background:var(--green-mist)}
   /* Errores por campo: mismo estilo que el formulario de Trabajadores */
-  .has-error,.has-error:focus{border-color:#f87171 !important;background:#fff7f7 !important;box-shadow:0 0 0 3px rgba(248,113,113,.12) !important}
-  .field-error{display:flex;align-items:flex-start;gap:5px;margin-top:5px;font-size:11.5px;font-weight:500;line-height:1.35;color:#dc2626}
-  .field-error::before{content:'!';flex-shrink:0;width:14px;height:14px;border-radius:50%;background:#dc2626;color:#fff;font-size:10px;font-weight:700;line-height:14px;text-align:center;margin-top:1px}
   </style>
   </head>
-  <body<?= $contratoVer ? ' class="modal-open"' : '' ?>>
-  <?php if ($mensaje): ?>
-  <div class="toast-sistema">
-    <div class="toast-title"><?= e($mensaje) ?></div>
-    <?php if (($detalle ?? '') !== '' && ($_GET['mensaje'] ?? '') === 'error'): ?>
-      <div class="toast-sub"><?= e($detalle) ?></div>
-    <?php elseif (!in_array($_GET['mensaje'] ?? '', ['creado', 'actualizado', 'renovado', 'terminado'], true)): ?>
-      <div class="toast-sub">No se guardaron cambios. Corrige el dato e inténtalo de nuevo.</div>
-    <?php else: ?>
-      <div class="toast-sub">El módulo quedó actualizado en la base de datos.</div>
-    <?php endif; ?>
-  </div>
-  <?php endif; ?>
+  <body>
+  <?php
+  // Resultado de la última acción, con el componente compartido de avisos
+  // (views/components/notificaciones.php + assets/js/notificaciones.js).
+  if ($mensaje) {
+      $codigoAviso = $_GET['mensaje'] ?? '';
+      $exitoAviso = in_array($codigoAviso, ['creado', 'actualizado', 'renovado', 'terminado'], true);
+      $nombreAviso = trim((string)($_GET['nombre'] ?? ''));
+      $textoAviso = $codigoAviso === 'terminado' && $nombreAviso !== ''
+          ? 'Se ha finalizado el contrato de ' . $nombreAviso . '.'
+          : $mensaje;
+      if (!$exitoAviso) {
+          $textoAviso .= $codigoAviso === 'error' && $detalle !== '' ? ' Detalle: ' . $detalle : ' No se guardaron cambios.';
+      }
+      echo avisoAlCargar($exitoAviso ? 'ok' : 'error', $textoAviso, null, null, $exitoAviso ? null : 10000);
+  }
+  ?>
 
 
   <div class="layout">
@@ -995,21 +541,52 @@ requerirAcceso();
             </div>
           </div>
 
-          <button class="btn btn-primary" type="button" onclick="nuevoContrato()">
-            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Nueva contratación
-          </button>
+          <div class="page-header-right">
+            <a href="../dashboard/dashboard.php" class="btn-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Volver al Panel</a>
+            <button class="btn btn-primary" type="button" onclick="nuevoContrato()">
+              <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nueva contratación
+            </button>
+          </div>
         </div>
 
-        <div class="stats-grid">
-          <div class="stat-card"><div class="stat-lbl">Contratos activos</div><div class="stat-num"><?= (int)$stats['activos'] ?></div><div class="stat-sub">Al día de hoy</div></div>
-          <div class="stat-card warning"><div class="stat-lbl">Por vencer</div><div class="stat-num"><?= (int)$stats['por_vencer'] ?></div><div class="stat-sub">Próximos 30 días</div></div>
-          <div class="stat-card danger"><div class="stat-lbl">Vencidos</div><div class="stat-num"><?= (int)$stats['vencidos'] ?></div><div class="stat-sub">Requieren revisión</div></div>
-          <div class="stat-card info"><div class="stat-lbl">Contrataciones del mes</div><div class="stat-num"><?= (int)$stats['del_mes'] ?></div><div class="stat-sub"><?= e(date('m/Y')) ?></div></div>
+        <div class="mini-stats">
+          <div class="mini-stat mini-stat-filtro" role="button" tabindex="0" aria-pressed="false" data-filtro-estado="Activo" title="Filtrar la tabla: contratos activos">
+            <div class="mini-stat-icon ic-green"><svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+            <div class="mini-stat-body">
+              <div class="mini-stat-num nc-green"><?= (int)$stats['activos'] ?></div>
+              <div class="mini-stat-label">Contratos activos</div>
+              <div class="mini-stat-sub">Al día de hoy</div>
+            </div>
+          </div>
+          <div class="mini-stat mini-stat-filtro" role="button" tabindex="0" aria-pressed="false" data-filtro-estado="Por vencer" title="Filtrar la tabla: por vencer">
+            <div class="mini-stat-icon ic-yellow"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+            <div class="mini-stat-body">
+              <div class="mini-stat-num nc-yellow"><?= (int)$stats['por_vencer'] ?></div>
+              <div class="mini-stat-label">Por vencer</div>
+              <div class="mini-stat-sub">Próximos 30 días</div>
+            </div>
+          </div>
+          <div class="mini-stat mini-stat-filtro" role="button" tabindex="0" aria-pressed="false" data-filtro-estado="Vencido" title="Filtrar la tabla: vencidos">
+            <div class="mini-stat-icon ic-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <div class="mini-stat-body">
+              <div class="mini-stat-num nc-red"><?= (int)$stats['vencidos'] ?></div>
+              <div class="mini-stat-label">Vencidos</div>
+              <div class="mini-stat-sub">Requieren revisión</div>
+            </div>
+          </div>
+          <div class="mini-stat mini-stat-filtro" role="button" tabindex="0" aria-pressed="false" data-filtro-mes="<?= e(date('Y-m')) ?>" title="Filtrar la tabla: contrataciones del mes">
+            <div class="mini-stat-icon ic-blue"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+            <div class="mini-stat-body">
+              <div class="mini-stat-num nc-blue"><?= (int)$stats['del_mes'] ?></div>
+              <div class="mini-stat-label">Contrataciones del mes</div>
+              <div class="mini-stat-sub"><?= e(date('m/Y')) ?></div>
+            </div>
+          </div>
         </div>
 
-      <div class="filters-bar contratos-filter-bar">
-    <div class="filter-group filter-search-main">
+      <div class="filters-bar">
+    <div class="filter-group filter-principal">
       <span class="filter-label">Buscar</span>
 
       <div class="search-wrap">
@@ -1073,8 +650,8 @@ requerirAcceso();
     </div>
   </div>
 
-  <div class="card contratos-table-card">
-          <div class="table-wrap">
+  <div class="table-wrap">
+          <div class="table-scroll">
             <table id="tablaContratos">
               <thead>
                 <tr>
@@ -1106,6 +683,7 @@ requerirAcceso();
                     data-estado="<?= e($c['estado_mostrar'] ?? '') ?>"
                     data-tipo="<?= e($c['tipo_contrato'] ?? '') ?>"
                     data-area="<?= e($c['area'] ?? '') ?>"
+                    data-inicio-mes="<?= !empty($c['fecha_inicio']) ? e(date('Y-m', strtotime($c['fecha_inicio']))) : '' ?>"
                     data-texto="<?= e(strtolower(
                       ($c['trabajador_nombre'] ?? '') . ' ' .
                       ($c['numero_documento'] ?? '') . ' ' .
@@ -1121,10 +699,7 @@ requerirAcceso();
                         </div>
 
                         <div>
-                          <div class="w-name"><?= e($c['trabajador_nombre'] ?? '') ?></div>
-                          <div class="w-id">
-                            ID <?= str_pad((string)($c['id_trabajador'] ?? 0), 4, '0', STR_PAD_LEFT) ?>
-                          </div>
+                          <div class="worker-name"><?= e($c['trabajador_nombre'] ?? '') ?></div>
                         </div>
                       </div>
                     </td>
@@ -1157,36 +732,32 @@ requerirAcceso();
                     </td>
 
                     <td>
-                      <div class="actions">
-                        <button
-                          class="act-btn js-ver-contrato"
-                          title="Ver"
-                          type="button"
-                          data-id="<?= (int)($c['id_contrato'] ?? 0) ?>"
-                          data-ver-contrato="<?= (int)$i ?>"
-                          onclick="return verContrato(<?= (int)$i ?>)"
-                        >
-                          <svg viewBox="0 0 24 24">
+                      <div class="acc-btns">
+                        <a href="ver.php?id=<?= (int)($c['id_contrato'] ?? 0) ?>" class="acc-btn" data-tip="Ver contrato" aria-label="Ver contrato">
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                             <circle cx="12" cy="12" r="3"/>
-                          </svg>
+                          </svg><span class="acc-label">Ver</span>
+                        </a>
+
+                        <a href="editar.php?id=<?= (int)($c['id_contrato'] ?? 0) ?>" class="acc-btn" data-tip="Editar contrato" aria-label="Editar contrato">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg><span class="acc-label">Editar</span>
+                        </a>
+
+                        <button class="acc-btn" data-tip="Renovar contrato" aria-label="Renovar contrato" type="button" onclick="renovarContrato(<?= (int)$i ?>)">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg><span class="acc-label">Renovar</span>
                         </button>
 
-                        <button class="act-btn" title="Editar" type="button" onclick="editarContrato(<?= (int)$i ?>)">
-                          <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        </button>
-
-                        <button class="act-btn" title="Renovar" type="button" onclick="renovarContrato(<?= (int)$i ?>)">
-                          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
-                        </button>
-
-                        <button class="act-btn stop" title="Terminar" type="button" onclick="abrirTerminar(<?= (int)($c['id_contrato'] ?? 0) ?>,'<?= e($c['trabajador_nombre'] ?? '') ?>')">
-                          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        <button class="acc-btn danger" data-tip="Terminar contrato" aria-label="Terminar contrato" type="button" onclick="abrirTerminar(<?= (int)($c['id_contrato'] ?? 0) ?>,'<?= e($c['trabajador_nombre'] ?? '') ?>')">
+                          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span class="acc-label">Terminar</span>
                         </button>
                       </div>
                     </td>
                   </tr>
                 <?php endforeach; ?>
+                <tr id="filaSinResultados" hidden>
+                  <td colspan="8"><div class="empty-state">No hay contratos con ese filtro.</div></td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -1197,90 +768,6 @@ requerirAcceso();
 
 
 
-  <div class="view-overlay <?= $contratoVer ? 'open' : '' ?>" id="overlayVerContrato">
-    <aside class="view-drawer">
-      <div class="view-head">
-        <div class="view-title">Ver contrato</div>
-        <a class="view-close js-cerrar-vista" href="<?= e(baseUrl('views/contratacion/index.php')) ?>" title="Cerrar">
-          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </a>
-      </div>
-
-      <div class="view-body">
-        <div class="view-worker">
-          <div class="view-avatar <?= e($contratoVer['avatar_class'] ?? 'avatar-blue') ?>" id="verAvatar"><?= e($contratoVer['iniciales'] ?? 'TR') ?></div>
-          <div>
-            <div class="view-worker-name" id="verNombre"><?= e($contratoVer['trabajador_nombre'] ?? 'Trabajador') ?></div>
-            <div class="view-worker-sub" id="verSub">
-              ID <?= str_pad((string)($contratoVer['id_trabajador'] ?? 0), 4, '0', STR_PAD_LEFT) ?> · <?= e($contratoVer['area'] ?? 'Sin área') ?>
-            </div>
-          </div>
-        </div>
-
-        <div class="view-section">
-          <div class="view-section-title">Datos del contrato</div>
-          <div class="view-grid">
-            <div class="view-card"><div class="view-label">Cargo</div><div class="view-value" id="verCargo"><?= e($contratoVer['cargo'] ?? '—') ?></div></div>
-            <div class="view-card"><div class="view-label">Área</div><div class="view-value" id="verArea"><?= e($contratoVer['area'] ?? '—') ?></div></div>
-            <div class="view-card"><div class="view-label">Tipo de contrato</div><div class="view-value" id="verTipoContrato"><?= e($contratoVer['tipo_contrato'] ?? '—') ?></div></div>
-            <div class="view-card"><div class="view-label">Estado</div><div class="view-value"><span class="status-pill <?= e(badgeClass($contratoVer['estado_mostrar'] ?? '')) ?>" id="verEstado"><?= e($contratoVer['estado_mostrar'] ?? '—') ?></span></div></div>
-            <div class="view-card"><div class="view-label">Jornada</div><div class="view-value" id="verJornada"><?= e($contratoVer['jornada'] ?? '—') ?></div></div>
-            <div class="view-card"><div class="view-label">Modalidad</div><div class="view-value" id="verModalidad"><?= e($contratoVer['modalidad'] ?? '—') ?></div></div>
-          </div>
-        </div>
-
-        <div class="view-section">
-          <div class="view-section-title">Vigencia</div>
-          <div class="view-grid">
-            <div class="view-card"><div class="view-label">Fecha inicio</div><div class="view-value" id="verFechaInicio"><?= e(fmtFecha($contratoVer['fecha_inicio'] ?? null)) ?></div></div>
-            <div class="view-card"><div class="view-label">Fecha final</div><div class="view-value" id="verFechaFin"><?= !empty($contratoVer['fecha_fin']) ? e(fmtFecha($contratoVer['fecha_fin'])) : 'Indefinido' ?></div></div>
-            <div class="view-card full"><div class="view-label">Periodo de prueba</div><div class="view-value" id="verPeriodoPrueba"><?= e($contratoVer['periodo_prueba'] ?? 'Sin periodo') ?></div></div>
-          </div>
-        </div>
-
-        <div class="view-section">
-          <div class="view-section-title">Resumen nómina mensual <span class="badge-estimado">Estimado</span></div>
-          <div class="nomina-box">
-            <div class="nomina-aviso" role="note">Valor estimado de referencia — no es la liquidación oficial de nómina.</div>
-            <div class="nomina-row"><span>Salario base</span><strong id="verSalarioBase"><?= e(fmtMoney($nominaVer['salario_base'])) ?></strong></div>
-            <div class="nomina-row"><span>Auxilio transporte</span><strong id="verAuxilio"><?= e(fmtMoney($nominaVer['auxilio_transporte'])) ?></strong></div>
-            <div class="nomina-row"><span>Total devengado</span><strong id="verTotalDevengado"><?= e(fmtMoney($nominaVer['total_devengado'])) ?></strong></div>
-            <div class="nomina-row deduction"><span>Salud (4%)</span><strong id="verSalud">-<?= e(fmtMoney($nominaVer['salud'])) ?></strong></div>
-            <div class="nomina-row deduction"><span>Pensión (4%)</span><strong id="verPension">-<?= e(fmtMoney($nominaVer['pension'])) ?></strong></div>
-            <div class="nomina-row deduction"><span>Total deducciones</span><strong id="verTotalDeducciones">-<?= e(fmtMoney($nominaVer['total_deducciones'])) ?></strong></div>
-            <div class="nomina-row total"><span>Neto a pagar</span><strong id="verNetoPagar"><?= e(fmtMoney($nominaVer['neto_pagar'])) ?></strong></div>
-            <div class="nomina-note">Cálculo aproximado: salud y pensión (4 % cada una) sobre el salario base; el auxilio de transporte suma al total devengado. No incluye horas extra, recargos, otras deducciones ni retenciones, así que el pago real puede ser distinto.</div>
-          </div>
-        </div>
-
-        <div class="view-section">
-          <div class="view-section-title">Observaciones</div>
-          <div class="view-card full"><div class="view-value" id="verObservaciones"><?= e($contratoVer['observaciones'] ?? 'Sin observaciones.') ?></div></div>
-        </div>
-        <div class="view-section">
-          <div class="view-section-title">Documentos de vinculación</div>
-          <div class="doc-list">
-            <div class="doc-list-item">
-              <div class="doc-icon contract">CT</div>
-              <div class="doc-list-info"><div class="doc-list-title">Contrato laboral</div><div class="doc-list-meta" id="docContratoMeta">Word editable generado con los datos del contrato.</div></div>
-              <span class="doc-status">Listo</span>
-            </div>
-            <div class="doc-list-item">
-              <div class="doc-icon profile">PC</div>
-              <div class="doc-list-info"><div class="doc-list-title">Perfil de cargo</div><div class="doc-list-meta" id="docPerfilMeta">Funciones y responsabilidades del cargo.</div></div>
-              <span class="doc-status">Listo</span>
-            </div>
-            <div class="doc-list-item">
-              <div class="doc-icon training">IN</div>
-              <div class="doc-list-info"><div class="doc-list-title">Formato de inducción</div><div class="doc-list-meta" id="docInducciónMeta">Registro para induccion y entrenamiento.</div></div>
-              <span class="doc-status">Listo</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </aside>
-  </div>
-
   <div class="overlay" id="overlayContrato">
     <div class="modal"> 
       <div class="modal-head">
@@ -1290,7 +777,7 @@ requerirAcceso();
         </button>
       </div>
 
-      <form id="formContrato" method="POST" action="guardar.php"><?php echo campoCsrf(); ?>
+      <form id="formContrato" method="POST" action="guardar.php" novalidate><?php echo campoCsrf(); ?>
         <div class="modal-body">
           <input type="hidden" name="accion" id="accion" value="nuevo">
           <input type="hidden" name="contrato_id" id="contrato_id">
@@ -1326,6 +813,7 @@ requerirAcceso();
                   </div>
 
                   <input type="hidden" name="id_trabajador" id="id_trabajador">
+                  <div class="trabajador-fijo-nota" id="notaTrabajadorFijo" hidden>Al renovar, el contrato sigue siendo del mismo trabajador. Si el trabajador es otro, crea una contratación nueva.</div>
 
                   <div class="trabajador-results" id="trabajadorResultados" hidden>
                     <?php foreach ($trabajadores as $t): ?>
@@ -1461,7 +949,7 @@ requerirAcceso();
 
               <div class="form-group">
                 <label class="form-label">Salario base mensual * <span class="label-aclaracion">(sin incluir el auxilio de transporte)</span></label>
-                <input class="form-input money-input" type="text" id="salario_base_view" placeholder="0" required inputmode="numeric" aria-describedby="ayudaSalarioBase">
+                <input class="form-input money-input" type="text" data-dinero id="salario_base_view" placeholder="0" required inputmode="numeric" aria-describedby="ayudaSalarioBase">
                 <input type="hidden" name="salario_base" id="salario_base">
                 <div class="ayuda-campo" id="ayudaSalarioBase">
                   Solo el salario pactado. El auxilio de transporte va en su propio campo y se suma aparte.
@@ -1471,7 +959,7 @@ requerirAcceso();
 
               <div class="form-group">
                 <label class="form-label">Auxilio de transporte <span class="label-aclaracion">(aparte del salario)</span></label>
-                <input class="form-input money-input" type="text" id="auxilio_transporte_view" placeholder="0" value="0" inputmode="numeric" required>
+                <input class="form-input money-input" type="text" data-dinero id="auxilio_transporte_view" placeholder="0" value="0" inputmode="numeric" required>
                 <input type="hidden" name="auxilio_transporte" id="auxilio_transporte">
                 <div class="auxilio-legal" id="auxilioLegal">
                   <span id="auxilioLegalTexto"></span>
@@ -1645,31 +1133,11 @@ requerirAcceso();
     </div>
   </div>
 
-  <div class="overlay" id="overlayTerminar">
-    <div class="modal small">
-      <div class="modal-head">
-        <div class="modal-title">Terminar contrato</div>
-        <button class="modal-close" type="button" onclick="cerrarTerminar()">
-          <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-
-      <form method="POST" action="guardar.php"><?php echo campoCsrf(); ?>
-        <div class="modal-body">
-          <input type="hidden" name="accion" value="terminar">
-          <input type="hidden" name="contrato_id" id="terminar_contrato_id">
-          <p class="modal-note">
-            Se marcará el contrato de <strong id="terminar_nombre">este trabajador</strong> como terminado.
-          </p>
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn" type="button" onclick="cerrarTerminar()">Cancelar</button>
-          <button class="btn btn-primary" type="submit">Confirmar</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <!-- Terminar contrato: se confirma con Notificar.confirmar() (assets/js/notificaciones.js) -->
+  <form method="POST" action="guardar.php" id="formTerminar" hidden><?php echo campoCsrf(); ?>
+    <input type="hidden" name="accion" value="terminar">
+    <input type="hidden" name="contrato_id" id="terminar_contrato_id">
+  </form>
 
   <script>  
   const contratos = <?= $contratosJson ?: '[]' ?>;  
@@ -1714,6 +1182,8 @@ requerirAcceso();
   function errorFechasContrato() {
     const inicio = String($('fecha_inicio')?.value || '').trim();
     const fin = String($('fecha_fin')?.value || '').trim();
+    if ($('fecha_inicio')?.validity?.badInput) return ['fecha_inicio', 'La fecha de inicio no es válida (está incompleta o ese día no existe).'];
+    if ($('fecha_fin')?.validity?.badInput) return ['fecha_fin', 'La fecha de fin no es válida (está incompleta o ese día no existe).'];
     if (inicio && !fechaReal(inicio)) return ['fecha_inicio', 'La fecha de inicio no es una fecha válida (ese día no existe).'];
     if (fin && !fechaReal(fin)) return ['fecha_fin', 'La fecha de fin no es una fecha válida (ese día no existe).'];
     if (inicio && fin && fin < inicio) return ['fecha_fin', 'La fecha de fin no puede ser anterior a la fecha de inicio.'];
@@ -1734,10 +1204,11 @@ requerirAcceso();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
+  // Error en línea bajo el campo (mismo estilo que el salario) y foco en él. Devuelve false
+  // para que el asistente no avance de paso.
   function focoConAlerta(id, mensaje) {
-    alert(mensaje);
-    const el = $(id);
-    if (el) el.focus();
+    marcarErrorCampo(id, mensaje);
+    Formularios.enfocar($(id));
     return false;
   }
 
@@ -1758,6 +1229,9 @@ requerirAcceso();
       marcarErrorCampo('jefe_inmediato', mensajeJefe);
       if (mensajeJefe) {
         return focoConAlerta('jefe_inmediato', mensajeJefe);
+      }
+      if ($('fecha_ingreso')?.validity?.badInput) {
+        return focoConAlerta('fecha_ingreso', 'La fecha de ingreso no es válida (está incompleta o ese día no existe).');
       }
       if (!String($('fecha_ingreso')?.value || '').trim()) {
         return focoConAlerta('fecha_ingreso', 'Indica la fecha de ingreso del trabajador.');
@@ -1942,8 +1416,8 @@ requerirAcceso();
             ? 'No se guardó el contrato: ' + data.texto
             : mensajeErrorContrato(data ? data.mensaje : 'error');
           if (data && data.campo) marcarErrorCampo($(data.campo + '_view') ? data.campo + '_view' : data.campo, data.texto || '');
-          const detalle = data && data.detalle ? ('\n\nDetalle técnico: ' + data.detalle) : '';
-          alert(base + detalle);
+          const detalle = data && data.detalle ? (' Detalle técnico: ' + data.detalle) : '';
+          Notificar.aviso({ tipo: 'error', texto: base + detalle, duracion: 10000 });
           if (btn) {
             btn.disabled = false;
             btn.textContent = textoOriginal;
@@ -1951,7 +1425,7 @@ requerirAcceso();
         }
       })
       .catch(function(){
-        alert('No se pudo conectar con el servidor. Intenta nuevamente.');
+        Notificar.aviso({ tipo: 'error', texto: 'No se pudo conectar con el servidor. Intenta nuevamente.', duracion: 10000 });
         if (btn) {
           btn.disabled = false;
           btn.textContent = textoOriginal;
@@ -2096,7 +1570,7 @@ function actualizarRevisionContrato() {
     const resultados = $('trabajadorResultados');
     const empty = $('trabajadorEmpty');
 
-    if (!input || !resultados) return;
+    if (!input || !resultados || input.readOnly) return;
 
     const q = normalizarTextoBusqueda(input.value);
     const opciones = opcionesTrabajador();
@@ -2119,7 +1593,7 @@ function actualizarRevisionContrato() {
     const input = $('buscar_trabajador_contrato');
     const hidden = $('id_trabajador');       
 
-    if (!input || !hidden || !opcion) return;
+    if (!input || !hidden || !opcion || input.readOnly) return;
 
     input.value = opcion.dataset.label || '';
     input.dataset.selectedLabel = input.value;
@@ -2193,7 +1667,24 @@ function actualizarRevisionContrato() {
     if (inputTrabajador) inputTrabajador.dataset.selectedLabel = '';
 
     setDisabledForm(false);
+    fijarTrabajador(false);
     resetPanelExitoContratacion();
+  }
+
+  // Al renovar, el trabajador es el del contrato y no se puede buscar ni cambiar (el servidor
+  // también rechaza otro id_trabajador). Área, cargo, jefe, fechas y salario siguen editables.
+  function fijarTrabajador(fijo){
+    const input = $('buscar_trabajador_contrato');
+    if (input) {
+      input.readOnly = fijo;
+      input.classList.toggle('trabajador-fijo', fijo);
+      input.setAttribute('aria-readonly', fijo ? 'true' : 'false');
+    }
+    const toggle = $('btnToggleTrabajadores');
+    if (toggle) toggle.hidden = fijo;
+    const nota = $('notaTrabajadorFijo');
+    if (nota) nota.hidden = !fijo;
+    if (fijo) ocultarOpcionesTrabajador();
   }
 
   function nuevoContrato(){
@@ -2257,142 +1748,15 @@ function actualizarRevisionContrato() {
     return fecha;
   }
 
-  function statusClassJS(estado){
-    if (estado === 'Activo') return 'status-active';
-    if (estado === 'Por vencer') return 'status-warning';
-    if (estado === 'Vencido' || estado === 'Inactivo') return 'status-danger';
-    if (estado === 'Terminado') return 'status-muted';
-    return 'status-muted';
-  }
-
   function setText(id, value){
     const el = document.getElementById(id);
     if (el) el.textContent = value ?? '';
   }
 
-  function abrirVistaContratoPorId(idContrato){
-    const id = Number(idContrato);
-
-    if (!Number.isFinite(id) || id <= 0) {
-      alert('No se pudo abrir el contrato. ID inválido.');
-      return false;
-    }
-
-    if (typeof contratos === 'undefined' || !Array.isArray(contratos)) {
-      alert('No se pudo abrir el contrato. La información no está disponible.');
-      return false;
-    }
-
-    const idx = contratos.findIndex(function(c){
-      return Number(c.id_contrato) === id;
-    });
-
-    if (idx === -1) {
-      alert('No se encontró el contrato seleccionado.');
-      return false;
-    }
-
-    return abrirVistaContrato(idx);
-  }
-
-  function abrirVistaContrato(idx){
-    idx = Number(idx);
-
-    if (!Number.isInteger(idx) || idx < 0) {
-      alert('No se pudo abrir el contrato. Índice inválido.');
-      return false;
-    }
-
-    if (typeof contratos === 'undefined' || !Array.isArray(contratos)) {
-      alert('No se pudo abrir el contrato. La información no está disponible.');
-      return false;
-    }
-
-    const c = contratos[idx];
-    if (!c) {
-      alert('No se encontró el contrato seleccionado.');
-      return false;
-    }
-
-    document.querySelectorAll('#tablaContratos tbody tr').forEach(function(row){
-      row.classList.remove('selected');
-    });
-
-    const row = document.querySelector('#tablaContratos tbody tr[data-index="' + idx + '"]');
-    if (row) row.classList.add('selected');
-
-    const salarioBase = numeroNomina(c.salario_base || 0);
-    const auxilio = numeroNomina(c.auxilio_transporte || 0);
-    const salud = Math.round(salarioBase * 0.04);
-    const pension = Math.round(salarioBase * 0.04);
-    const totalDevengado = salarioBase + auxilio;
-    const totalDeducciones = salud + pension;
-    const netoPagar = totalDevengado - totalDeducciones;
-
-    setText('verIniciales', c.iniciales || 'TR');
-    setText('verNombre', c.nombre_completo || 'Trabajador');
-    setText('verSub', 'ID ' + String(c.id_trabajador || 0).padStart(4, '0') + ' · ' + (c.area || 'Sin área'));
-    setText('verCargo', c.cargo || 'Sin cargo');
-    setText('verArea', c.area || 'Sin área');
-    setText('verTipoContrato', c.tipo_contrato || 'Sin tipo');
-    setText('verJornada', c.jornada || '—');
-    setText('verModalidad', c.modalidad || '—');
-    setText('verFechaInicio', fechaVista(c.fecha_inicio));
-    setText('verFechaFin', fechaVista(c.fecha_fin));
-    setText('verPeriodoPrueba', c.periodo_prueba || 'Sin periodo');
-    setText('verObservaciones', c.observaciones || 'Sin observaciones.');
-    const docCargo = (c.cargo || 'Cargo').replace(/\\s+/g, '_');
-    setText('docContratoMeta', 'Contrato_Laboral_' + docCargo + '.docx');
-    setText('docPerfilMeta', 'Perfil_Cargo_' + docCargo + '.docx');
-    setText('docInducciónMeta', 'Inducción_' + docCargo + '.docx');
-
-    const estado = c.estado_mostrar || c.estado || 'Sin estado';
-    const estadoEl = document.getElementById('verEstado');
-    if (estadoEl) {
-      estadoEl.textContent = estado;
-      estadoEl.className = 'status-pill ' + statusClassJS(estado);
-    }
-
-    setText('verSalarioBase', moneyCOP(salarioBase));
-    setText('verAuxilio', moneyCOP(auxilio));
-    setText('verTotalDevengado', moneyCOP(totalDevengado));
-    setText('verSalud', '-' + moneyCOP(salud));
-    setText('verPension', '-' + moneyCOP(pension));
-    setText('verTotalDeducciones', '-' + moneyCOP(totalDeducciones));
-    setText('verNetoPagar', moneyCOP(netoPagar));
-
-    const overlay = document.getElementById('overlayVerContrato');
-    if (overlay) overlay.classList.add('open');
-
-    document.body.classList.add('modal-open');
-    return false;
-  }
-
-  function verContrato(idx){
-    return abrirVistaContrato(idx);
-  }
-
-  function cerrarVistaContrato(){
-    const overlay = document.getElementById('overlayVerContrato');
-    if (overlay) overlay.classList.remove('open');
-
-    document.body.classList.remove('modal-open');
-
-    document.querySelectorAll('#tablaContratos tbody tr').forEach(function(row){
-      row.classList.remove('selected');
-    });
-  }
-
+  // Editar es una página propia (editar.php): formulario de una pantalla, trabajador fijo.
   function editarContrato(idx){
-    limpiarFormulario();
-    const c = llenarContrato(idx);
-    if (!c) return;
-
-    setValue('accion', 'actualizar');
-    $('modalContratoTitulo').textContent = 'Editar contratación';
-    $('btnGuardarContrato').textContent = 'Guardar cambios';
-    setDisabledForm(false);
-    abrirModalContrato();
+    const c = contratos[idx];
+    if (c) window.location.href = 'editar.php?id=' + encodeURIComponent(c.id_contrato);
   }
 
   function renovarContrato(idx){
@@ -2406,18 +1770,24 @@ function actualizarRevisionContrato() {
     setValue('fecha_inicio', hoyLocal());
     setValue('fecha_fin', '');
     setDisabledForm(false);
+    fijarTrabajador(true);   // después de setDisabledForm, que rehabilita todos los campos
     abrirModalContrato();
   }
 
+  // Terminar un contrato no se puede deshacer: se pide confirmación (mismo patrón que
+  // "Inactivar trabajador") y el aviso posterior nombra al trabajador.
   function abrirTerminar(idContrato, nombre){
-    setValue('terminar_contrato_id', idContrato);
-    const nombreEl = $('terminar_nombre');
-    if (nombreEl) nombreEl.textContent = nombre || 'este trabajador';
-    $('overlayTerminar')?.classList.add('open');
-  }
-
-  function cerrarTerminar(){
-    $('overlayTerminar')?.classList.remove('open');
+    const quien = nombre || 'este trabajador';
+    Notificar.confirmar({
+      titulo: 'Finalizar contrato',
+      mensaje: '¿Estás seguro de finalizar el contrato de ' + quien + '? Esta acción no se puede deshacer.',
+      confirmar: 'Finalizar contrato',
+      peligro: true
+    }).then(function(ok){
+      if (!ok) return;
+      setValue('terminar_contrato_id', idContrato);
+      $('formTerminar').submit();
+    });
   }
 
   function normalizarTextoContrato(texto) {
@@ -2438,6 +1808,7 @@ function actualizarRevisionContrato() {
 
     const estado = $('filtroEstado')?.value || '';
     const area = $('filtroArea')?.value || '';
+    let visibles = 0;
 
     document.querySelectorAll('#tablaContratos tbody tr').forEach(tr => {
       if (!tr.dataset) return;
@@ -2449,10 +1820,51 @@ function actualizarRevisionContrato() {
       const coincideTexto = !q || textoFila.includes(q);
       const coincideEstado = !estado || (tr.dataset.estado || '') === estado;
       const coincideArea = !area || areaFila.includes(areaFiltro);
+      const coincideMes = !filtroMesInicio || (tr.dataset.inicioMes || '') === filtroMesInicio;
 
-      tr.style.display = (coincideTexto && coincideEstado && coincideArea) ? '' : 'none';
+      if (tr.id === 'filaSinResultados') return;
+      const visible = coincideTexto && coincideEstado && coincideArea && coincideMes;
+      tr.style.display = visible ? '' : 'none';
+      if (visible) visibles++;
+    });
+
+    const sinResultados = $('filaSinResultados');
+    if (sinResultados) sinResultados.hidden = visibles > 0 || !contratos.length;
+    marcarTarjetaActiva();
+  }
+
+  // Tarjetas de estadística como filtros: estado (Activo / Por vencer / Vencido) o mes de inicio.
+  // Un segundo clic en la misma tarjeta quita el filtro.
+  let filtroMesInicio = '';
+
+  function marcarTarjetaActiva(){
+    const estado = $('filtroEstado')?.value || '';
+    document.querySelectorAll('.mini-stat-filtro').forEach(function(t){
+      const activa = (t.dataset.filtroEstado && !filtroMesInicio && t.dataset.filtroEstado === estado)
+        || (t.dataset.filtroMes && filtroMesInicio === t.dataset.filtroMes);
+      t.classList.toggle('activa', !!activa);
+      t.setAttribute('aria-pressed', activa ? 'true' : 'false');
     });
   }
+
+  function filtrarPorTarjeta(tarjeta){
+    const yaActiva = tarjeta.classList.contains('activa');
+    const selEstado = $('filtroEstado');
+    filtroMesInicio = '';
+    if (selEstado) selEstado.value = '';
+    if (!yaActiva) {
+      if (tarjeta.dataset.filtroEstado && selEstado) selEstado.value = tarjeta.dataset.filtroEstado;
+      if (tarjeta.dataset.filtroMes) filtroMesInicio = tarjeta.dataset.filtroMes;
+    }
+    filtrarTabla();
+  }
+
+  document.querySelectorAll('.mini-stat-filtro').forEach(function(t){
+    t.addEventListener('click', function(){ filtrarPorTarjeta(t); });
+    t.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); filtrarPorTarjeta(t); }
+    });
+  });
 
   function limpiarNumero(valor){
     return String(valor || '').replace(/[^\d]/g, '');
@@ -2464,10 +1876,9 @@ function actualizarRevisionContrato() {
     return new Intl.NumberFormat('es-CO').format(Number(limpio));
   }
 
-  // Montos: antes se borraba en silencio cualquier carácter no numérico al escribir o
-  // pegar ("2O00000" quedaba como 200.000 sin aviso). Ahora solo se aceptan dígitos y
-  // puntos de miles; cualquier otro carácter se marca como error y NO se corrige solo.
-  // El servidor aplica la misma regla (validaciones_contrato.php).
+  // Montos: la máscara compartida (data-dinero, assets/js/formularios.js) solo deja escribir
+  // dígitos y pone los puntos de miles; pegar texto con letras se rechaza con aviso (nunca se
+  // limpia en silencio). El servidor aplica la misma regla (validaciones_contrato.php).
   const ETIQUETA_MONTO = { salario_base_view: 'El salario', auxilio_transporte_view: 'El auxilio de transporte' };
 
   function errorMonto(viewId, valor){
@@ -2475,8 +1886,9 @@ function actualizarRevisionContrato() {
     const v = String(valor || '').trim();
     if (!v) return viewId === 'salario_base_view' ? etiqueta + ' es obligatorio.' : '';
     if (v.includes('-')) return etiqueta + ' no puede ser negativo.';
-    if (!/^[\d.]+$/.test(v)) return etiqueta + ' solo puede contener números, sin letras ni símbolos.';
-    if (!/^\d+$/.test(v) && !/^\d{1,3}(\.\d{3})+$/.test(v)) return etiqueta + ' tiene los puntos mal ubicados. Escríbelo solo con números, por ejemplo 1300000.';
+    // El formato (puntos de miles) lo pone la máscara de assets/js/formularios.js: el usuario
+    // solo puede escribir dígitos, así que aquí no se le pide escribirlo de ninguna forma.
+    if (!/^[\d.]+$/.test(v)) return etiqueta + ' no es un valor válido.';
     if (viewId === 'salario_base_view' && Number(limpiarNumero(v)) <= 0) return etiqueta + ' debe ser mayor que cero.';
     return '';
   }
@@ -2515,10 +1927,8 @@ function actualizarRevisionContrato() {
       return mensaje;
     }
 
-    view.addEventListener('input', function(){
-      // Mientras escribe solo se formatea si el valor es válido; nunca se borran letras.
-      actualizar(/^[\d.]*$/.test(view.value));
-    });
+    // La máscara (data-dinero) ya formatea mientras escribe; aquí solo se sincroniza el valor.
+    view.addEventListener('input', function(){ actualizar(false); });
     view.addEventListener('blur', function(){ actualizar(true); });
     view.validarMonto = function(){ return actualizar(true); };
 
@@ -2529,11 +1939,12 @@ function actualizarRevisionContrato() {
   if (campoJefe) {
     campoJefe.addEventListener('blur', function(){ marcarErrorCampo('jefe_inmediato', errorJefe(campoJefe.value)); });
   }
+  // Fechas: se validan al salir del campo. No se asigna .min: con Chrome, cambiar el min del
+  // campo mientras se escribe el año lo reiniciaba (quedaba "0022" o vacío).
   ['fecha_inicio', 'fecha_fin'].forEach(function(id){
     const campo = $(id);
     if (!campo) return;
-    campo.addEventListener('change', function(){
-      if ($('fecha_fin')) $('fecha_fin').min = $('fecha_inicio')?.value || '';
+    campo.addEventListener('blur', function(){
       const err = errorFechasContrato();
       marcarErrorCampo('fecha_inicio', err && err[0] === 'fecha_inicio' ? err[1] : '');
       marcarErrorCampo('fecha_fin', err && err[0] === 'fecha_fin' ? err[1] : '');
@@ -2658,9 +2069,30 @@ function actualizarRevisionContrato() {
       if (inputContratoLocal) inputContratoLocal.value = '';
       if (areaContratoLocal) areaContratoLocal.value = '';
       if (estadoContratoLocal) estadoContratoLocal.value = '';
+      filtroMesInicio = '';
       filtrarTabla();
     });
   }
+
+  (function abrirDesdeFicha(){
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('nuevo') === '1') {
+      nuevoContrato();
+      const idTrab = params.get('trabajador');
+      const opcion = idTrab && opcionesTrabajador().find(function(o){ return o.dataset.id === idTrab; });
+      if (opcion) aplicarTrabajadorSeleccionado(opcion);
+      else if (idTrab) Notificar.aviso({ tipo: 'info', texto: 'Ese trabajador no está disponible para una contratación nueva (ya tiene un contrato vigente o está inactivo). Elígelo de la lista.' });
+      return;
+    }
+    const accion = params.get('abrir');
+    const id = Number(params.get('id'));
+    if (!accion || !id) return;
+    const idx = contratos.findIndex(function(c){ return Number(c.id_contrato) === id; });
+    if (idx === -1) return;
+    if (accion === 'editar') editarContrato(idx);
+    else if (accion === 'renovar') renovarContrato(idx);
+    else if (accion === 'terminar') abrirTerminar(id, contratos[idx].trabajador_nombre || '');
+  })();
 
   const formContrato = $('formContrato');
   if (formContrato) {
@@ -2669,8 +2101,7 @@ function actualizarRevisionContrato() {
 
       if (!$('id_trabajador')?.value) {
         e.preventDefault();
-        alert('Selecciona un trabajador válido y disponible de la lista.');
-        $('buscar_trabajador_contrato')?.focus();
+        focoConAlerta('buscar_trabajador_contrato', 'Selecciona un trabajador válido y disponible de la lista.');
         return;
       }
 
@@ -2682,8 +2113,7 @@ function actualizarRevisionContrato() {
       const errorAuxilio = auxilioView && auxilioView.validarMonto ? auxilioView.validarMonto() : '';
       if (errorSalario || errorAuxilio) {
         e.preventDefault();
-        alert(errorSalario || errorAuxilio);
-        (errorSalario ? salarioView : auxilioView).focus();
+        Formularios.enfocar(errorSalario ? salarioView : auxilioView);
         return;
       }
       if ($('auxilio_transporte') && !$('auxilio_transporte').value) $('auxilio_transporte').value = '0';
@@ -2695,54 +2125,21 @@ function actualizarRevisionContrato() {
     });
   }
 
-  document.addEventListener('click', function(e){
-    const btnCloseView = e.target.closest('[data-close-ver-contrato]');
-    if (btnCloseView) {
-      e.preventDefault();
-      cerrarVistaContrato();
-      return;
-    }
-
-    const btnVer = e.target.closest('.js-ver-contrato, [data-ver-contrato]');
-    if (btnVer) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const idx = parseInt(btnVer.dataset.verContrato || '', 10);
-      if (!Number.isNaN(idx)) {
-        abrirVistaContrato(idx);
-        return;
-      }
-
-      abrirVistaContratoPorId(btnVer.dataset.id);
-    }
-  });
-
-  $('overlayVerContrato')?.addEventListener('click', function(e){
-    if (e.target === this) cerrarVistaContrato();
-  });
-
   $('overlayContrato')?.addEventListener('click', function(e){
     if (e.target === this) cerrarModalContrato();
   });
 
-  $('overlayTerminar')?.addEventListener('click', function(e){
-    if (e.target === this) cerrarTerminar();
-  });
 
   /* Seguridad extra: los enlaces del menú navegan aunque haya un estado visual raro */
   document.querySelectorAll('.sidebar-nav a.nav-item, .nav-logout').forEach(function(link){
     link.addEventListener('click', function(){
-      cerrarVistaContrato();
       closeSidebar();
     });
   });
 
   document.addEventListener('keydown', function(e){
     if (e.key === 'Escape') {
-      cerrarVistaContrato();
       cerrarModalContrato();
-      cerrarTerminar();
       closeSidebar();
     }
 

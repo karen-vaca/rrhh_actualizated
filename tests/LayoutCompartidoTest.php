@@ -32,11 +32,13 @@ function afirmar(bool $condicion, string $mensaje): void {
 }
 
 $raiz = dirname(__DIR__);
+require __DIR__ . '/../config/conexion.php';
+$idContratoPrueba = (int)$conexion->query('SELECT MAX(id_contrato) FROM contratos')->fetchColumn();
 $pantallas = [
     'views/trabajadores/index.php', 'views/trabajadores/ver.php', 'views/trabajadores/editar.php',
     'views/contratacion/index.php', 'views/novedades/index.php', 'views/perfil_salud/index.php',
     'views/examenes/index.php', 'views/vacaciones/index.php', 'views/dashboard/dashboard.php',
-    'views/components/en_construccion.php',
+    'views/components/en_construccion.php', 'views/contratacion/ver.php', 'views/contratacion/editar.php',
 ];
 
 // Selectores (sin pseudo-clases de estado) de un texto CSS: "a,b{...}" -> ['a','b'].
@@ -92,6 +94,61 @@ foreach ($pantallas as $p) {
     });
 }
 
+echo "\nComponentes de contenido compartidos (assets/css/componentes.css)\n";
+$componentes = file_get_contents("$raiz/assets/css/componentes.css");
+$delComponentes = array_values(array_unique(selectoresCss($componentes)));
+prueba('componentes.css define tarjetas, filtros, tabla, avatares y acciones; estilos_base.php lo carga', function () use ($raiz, $delComponentes, $componentes) {
+    foreach (['.mini-stat', '.mini-stat-icon', '.filters-bar', '.search-wrap', '.table-wrap', 'thead th', '.worker-avatar', '.avatar-c0', '.avatar-c5', '.acc-btn'] as $sel) {
+        afirmar(in_array($sel, $delComponentes, true), "Falta $sel en componentes.css");
+    }
+    afirmar(!str_contains($componentes, '::before{content:\'\';position:absolute;inset:0 0 auto'), 'Hay una barra de color superior en las tarjetas');
+    afirmar(str_contains(file_get_contents("$raiz/views/components/estilos_base.php"), 'assets/css/componentes.css'), 'estilos_base.php no carga componentes.css');
+});
+// Pantallas ya migradas a los componentes compartidos (las demás se migran por etapas).
+foreach (['views/trabajadores/index.php', 'views/contratacion/index.php'] as $p) {
+    prueba("$p: no redefine clases de componentes.css ni tiene tarjetas con barra de color", function () use ($raiz, $p, $delComponentes) {
+        $s = file_get_contents("$raiz/$p");
+        preg_match_all('#<style[^>]*>(.*?)</style>#s', $s, $m);
+        $css = implode("\n", $m[1]);
+        $repetidos = array_values(array_unique(array_intersect(selectoresCss($css), $delComponentes)));
+        afirmar($repetidos === [], 'Redefine en su <style>: ' . implode(' ', $repetidos));
+        afirmar(!preg_match('/\.stat-card::before/', $css) && !str_contains($s, 'class="stat-card'), 'Usa tarjetas .stat-card con barra de color');
+        afirmar(str_contains($s, "components/avatar.php'"), 'No usa el avatar compartido (components/avatar.php)');
+    });
+}
+prueba('solo las pantallas antiguas conocidas desactivan componentes.css (ninguna nueva puede hacerlo)', function () use ($raiz) {
+    $pendientes = [];
+    foreach (glob("$raiz/views/*/*.php") as $f) {
+        if (str_contains($f, '/views/components/')) {
+            continue;   // estilos_base.php solo lo documenta
+        }
+        if (preg_match('/\$componentesPendientes\s*=\s*true/', file_get_contents($f))) {
+            $pendientes[] = substr($f, strlen($raiz) + 1);
+        }
+    }
+    sort($pendientes);
+    $conocidas = ['views/dashboard/dashboard.php', 'views/examenes/index.php', 'views/novedades/index.php',
+                  'views/perfil_salud/index.php', 'views/vacaciones/index.php'];
+    afirmar($pendientes === $conocidas, 'Pantallas que desactivan componentes.css: ' . implode(', ', $pendientes));
+});
+prueba('avatar: la misma persona tiene el mismo color en Trabajadores y Contratación (claseAvatar por id)', function () use ($raiz) {
+    require_once "$raiz/views/components/avatar.php";
+    $colores = [];
+    foreach (['views/trabajadores/index.php', 'views/contratacion/index.php'] as $pag) {
+        $h = ejecutarComoWeb($pag, [], 'GET')['cuerpo'];
+        preg_match_all('#class="worker-avatar (avatar-c\d)[^"]*">\s*([^<]*?)\s*</div>\s*<div[^>]*>\s*<div class="worker-name">([^<]+)</div>#', $h, $m, PREG_SET_ORDER);
+        afirmar(count($m) > 0, "No se encontraron avatares en $pag");
+        foreach ($m as [, $clase, , $nombre]) {
+            $colores[trim(html_entity_decode($nombre))][$pag] = $clase;
+        }
+    }
+    $comunes = array_filter($colores, fn($v) => count($v) === 2);
+    afirmar(count($comunes) > 0, 'No hay trabajadores en ambas pantallas para comparar');
+    foreach ($comunes as $nombre => $v) {
+        afirmar(count(array_unique($v)) === 1, "$nombre tiene colores distintos: " . json_encode($v));
+    }
+});
+
 echo "\nSidebar y barra superior vienen de un solo componente\n";
 foreach ($pantallas as $p) {
     prueba("$p: usa components/sidebar.php y topbar.php, sin copia propia", function () use ($raiz, $p) {
@@ -118,6 +175,8 @@ $paginas = [
     'views/vacaciones/index.php' => [], 'views/dashboard/dashboard.php' => [], 'views/actividades/index.php' => [],
     'views/incidentes/index.php' => [], 'views/capacitaciones/index.php' => [], 'views/reportes/index.php' => [],
     'views/indicadores/index.php' => [], 'views/usuarios/index.php' => [], 'views/roles/index.php' => [],
+    'views/contratacion/ver.php' => ['id' => (string)$GLOBALS['idContratoPrueba']],
+    'views/contratacion/editar.php' => ['id' => (string)$GLOBALS['idContratoPrueba']],
 ];
 $activas = [
     'views/trabajadores/index.php' => 'Trabajadores', 'views/trabajadores/ver.php' => 'Trabajadores',
@@ -128,6 +187,7 @@ $activas = [
     'views/incidentes/index.php' => 'Incidentes', 'views/capacitaciones/index.php' => 'Capacitaciones',
     'views/reportes/index.php' => 'Reportes', 'views/indicadores/index.php' => 'Indicadores',
     'views/usuarios/index.php' => 'Usuarios', 'views/roles/index.php' => 'Roles y Permisos',
+    'views/contratacion/ver.php' => 'Contratación', 'views/contratacion/editar.php' => 'Contratación',
 ];
 $menuReferencia = null;
 foreach ($paginas as $pag => $get) {

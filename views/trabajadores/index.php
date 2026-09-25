@@ -15,6 +15,7 @@ if (!file_exists($conexionFile)) {
 }
 require_once $conexionFile;
 require_once __DIR__ . '/funciones_trabajador.php';
+require_once __DIR__ . '/../components/avatar.php';
 
 // Formulario "Nuevo trabajador": errores y datos enviados si crear.php lo rechazó.
 ['errores' => $erroresNuevo, 'old' => $oldNuevo] = tomarErroresFormulario();
@@ -329,15 +330,8 @@ $total_filtrado = count($trabajadores);
 .stat-mini-chart{height:36px;width:100%}
  
 /* icon color variants */
-.ic-green{background:#eafaf1;color:#1a9945}
-.ic-blue{background:#eff6ff;color:#2563eb}
-.ic-red{background:#fff1f2;color:#dc2626}
-.ic-yellow{background:#fffbeb;color:#d97706}
-.ic-purple{background:#f5f3ff;color:#7c3aed}
  
 /* num color variants */
-.nc-green{color:#1a9945}.nc-blue{color:#2563eb}.nc-red{color:#dc2626}
-.nc-yellow{color:#d97706}.nc-purple{color:#7c3aed}
  
 /* ── BOTTOM GRID (charts + sidebar panels) ── */
 .bottom-grid{display:grid;grid-template-columns:1fr 1fr 320px;gap:16px}
@@ -417,7 +411,6 @@ $total_filtrado = count($trabajadores);
 .cal-day.empty{color:transparent;pointer-events:none}
  
 /* animations */
-@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .stat-card:nth-child(1){animation-delay:.04s}
 .stat-card:nth-child(2){animation-delay:.08s}
 .stat-card:nth-child(3){animation-delay:.12s}
@@ -451,142 +444,37 @@ $total_filtrado = count($trabajadores);
 .page-icon svg{width:26px;height:26px;stroke:var(--green-dim);fill:none;stroke-width:1.7}
 .page-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1}
 .page-sub{font-size:var(--tx-subtitulo);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);margin-top:3px}
-.page-header-right{display:flex;align-items:center;gap:10px}
-.btn-back{display:flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:500;color:var(--text-mid);text-decoration:none;transition:all .2s}
-.btn-back:hover{border-color:#b6dfc4;background:#f7fbf8}
-.btn-back svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
 .btn-new{display:flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--green),var(--green-dim));border:none;border-radius:10px;padding:10px 18px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#021a08;cursor:pointer;text-decoration:none;transition:all .2s;box-shadow:0 3px 14px rgba(45,223,110,0.25)}
 .btn-new:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,223,110,0.35)}
 .btn-new svg{width:16px;height:16px;stroke:#021a08;fill:none;stroke-width:2.5}
 
  
 /* ── MINI STATS ── */
-.mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.mini-stat{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;animation:fadeUp .5s ease both}
-.mini-stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
-.mini-stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.mini-stat-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
-.mini-stat-body{}
-.mini-stat-num{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1}
-.mini-stat-label{font-size:12.5px;color:var(--text-mid);margin-top:2px;font-weight:500}
-.mini-stat-sub{font-size:11.5px;color:var(--text-soft);margin-top:2px}
-.mini-stat:nth-child(1){animation-delay:.04s}
-.mini-stat:nth-child(2){animation-delay:.08s}
-.mini-stat:nth-child(3){animation-delay:.12s}
-.mini-stat:nth-child(4){animation-delay:.16s}
  
 /* ── FILTERS BAR ── */
-.filters-bar{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow)}
-.filter-group{display:flex;flex-direction:column;gap:4px}
-.filter-label{font-size:10.5px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px}
-.search-wrap{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:9px 14px;transition:border-color .2s,box-shadow .2s}
-.search-wrap:focus-within{border-color:#b6dfc4;box-shadow:0 0 0 3px rgba(45,223,110,0.07)}
-.search-wrap svg{width:15px;height:15px;stroke:var(--text-soft);fill:none;stroke-width:1.8;flex-shrink:0}
-.search-wrap input{background:none;border:none;outline:none;font-size:13.5px;color:var(--text);font-family:'DM Sans',sans-serif;width:100%}
-.search-wrap input::placeholder{color:var(--text-soft)}
-.filter-select{height:40px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0 32px 0 12px;font-size:13px;color:var(--text-mid);font-family:'DM Sans',sans-serif;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238aab96' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:border-color .2s;min-width:130px}
-.filter-select:focus{outline:none;border-color:#b6dfc4}
-.btn-filter{display:flex;align-items:center;gap:6px;height:40px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0 16px;font-size:13px;color:var(--text-mid);cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'DM Sans',sans-serif}
-.btn-filter:hover{border-color:#b6dfc4;background:#f0f8f3}
-.btn-filter svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
-.btn-clear{color:#dc2626;border-color:#fecaca}
-.btn-clear:hover{background:#fff1f2;border-color:#fca5a5}
  
 /* ── TABLE WRAP ── */
-.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);animation:fadeUp .5s .2s ease both}
-.table-top{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
-.table-count{font-size:13px;color:var(--text-soft)}
-.table-count strong{color:var(--text);font-weight:600}
-.table-actions{display:flex;gap:8px}
-.btn-icon{width:32px;height:32px;border-radius:8px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:var(--text-mid)}
-.btn-icon:hover{border-color:#b6dfc4;color:var(--green-dark)}
-.btn-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
  
 /* ── TABLE ── */
-table{width:100%;border-collapse:collapse}
-thead tr{background:var(--bg);border-bottom:1px solid var(--border)}
-thead th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap}
 .sort-th{display:inline-flex;align-items:center;gap:4px;cursor:pointer;transition:color .15s}
 .sort-th:hover{color:var(--green-dark)}
 .sort-th svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2;opacity:.45}
-tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
-tbody tr:last-child{border-bottom:none}
-tbody tr:hover{background:#f7fbf8}
-tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);vertical-align:middle}
  
 /* worker cell */
-.worker-cell{display:flex;align-items:center;gap:12px}
-.worker-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
-.worker-name{font-size:var(--tx-valor);font-weight:var(--tx-peso-enfasis);color:var(--tx-color);line-height:1.2}
-.worker-id{font-size:11.5px;color:var(--text-soft);margin-top:1px}
 .contact-email{font-size:12.5px;color:var(--text);font-weight:500}
 .contact-phone{font-size:11.5px;color:var(--text-soft);margin-top:1px}
  
 /* badges */
 .badge-area{border-radius:20px;padding:3px 11px;font-size:11.5px;font-weight:500;display:inline-block}
-.badge-activo{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 12px;
-  border-radius:999px;
-  background:#f0fdf4;
-  color:#16a34a;
-  border:1px solid #bbf7d0;
-  font-size:12px;
-  font-weight:700;
-  white-space:nowrap;
-}
 
-.badge-inactivo{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 12px;
-  border-radius:999px;
-  background:#fff1f2;
-  color:#dc2626;
-  border:1px solid #fecaca;
-  font-size:12px;
-  font-weight:700;
-  white-space:nowrap;
-}
-
-.badge-dot{
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  display:inline-block;
-}
-
-.dot-green{
-  background:#22c55e;
-}
-
-.dot-red{
-  background:#dc2626;
-}
-.badge-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.dot-green{background:#16a34a}.dot-gray{background:#9ca3af}
  
 /* action buttons */
-.acc-btns{display:flex;align-items:center;gap:4px}
-.acc-btn{width:30px;height:30px;border-radius:8px;background:none;border:1px solid transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;color:var(--text-soft);text-decoration:none}
-.acc-btn:hover{background:var(--bg);border-color:var(--border);color:var(--green-dark)}
-.acc-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
-.acc-btn.danger:hover{background:#fff1f2;border-color:#fecaca;color:#dc2626}
 /* Texto de las acciones (criterio de las action-pill de Bodega2): con espacio se ve
    el texto junto al ícono; en pantallas más angostas queda solo el ícono, con un
    tooltip propio que aparece al pasar el mouse y también al llegar con el teclado
    (el title nativo no hace esto último ni se ve en celular). El nombre accesible
    siempre lo da aria-label. */
-.acc-btn{position:relative;width:auto;min-width:30px;padding:0 7px;gap:6px}
-.acc-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-.acc-btn[data-tip]::after{content:attr(data-tip);position:absolute;right:calc(100% + 6px);top:50%;transform:translateY(-50%);background:#0d1f11;color:#fff;font-size:11px;font-weight:500;line-height:1;padding:6px 8px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:20}
-.acc-btn[data-tip]:hover::after,.acc-btn[data-tip]:focus-visible::after{opacity:1}
 @media(min-width:1600px){
-  .acc-label{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto;font-size:12px;font-weight:500}
-  .acc-btn[data-tip]::after{display:none}
 }
  
 /* ── PAGINATION ── */
@@ -636,72 +524,16 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
  
 /* ── RESPONSIVE EXTRA ── */
 @media(max-width:900px){
-  .mini-stats{grid-template-columns:1fr 1fr}
   .form-row{grid-template-columns:1fr}
   .form-group.full{grid-column:auto}
   .page-header{flex-direction:column;align-items:flex-start}
 }
 @media(max-width:640px){
-  .mini-stats{grid-template-columns:1fr 1fr}
   thead th:nth-child(2),tbody td:nth-child(2),
   thead th:nth-child(4),tbody td:nth-child(4){display:none}
 }
  
  /* ── TOAST SISTEMA ── */
-.toast-sistema {
-  position: fixed;
-  top: 86px;
-  right: 28px;
-  z-index: 99999;
-  min-width: 280px;
-  max-width: 360px;
-  padding: 16px 18px;
-  border-radius: 16px;
-  font-family: 'DM Sans', sans-serif;
-  box-shadow: 0 18px 45px rgba(0,0,0,.16);
-  animation: toastEntrada .35s ease both;
-}
-
-.toast-sistema strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 800;
-  margin-bottom: 4px;
-}
-
-.toast-sistema span {
-  display: block;
-  font-size: 12.5px;
-  font-weight: 500;
-  opacity: .85;
-}
-
-.toast-ok {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
-}
-
-.toast-warning {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
-}
-
-.toast-hide {
-  animation: toastSalida .35s ease forwards;
-}
-
-@keyframes toastEntrada {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 /* ── MODAL CONFIRMAR INACTIVAR ── */
 .confirm-backdrop {
   position: fixed;
@@ -828,27 +660,6 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
 .btn-confirm-ok:hover {
   background: #b91c1c;
   transform: translateY(-1px);
-}
-.acc-btn.reactivate {
-  background: #eff6ff;
-  border-color: #bfdbfe;
-  color: #2563eb;
-}
-
-.acc-btn.reactivate:hover {
-  background: #dbeafe;
-  border-color: #93c5fd;
-  color: #1d4ed8;
-}
-
-.acc-btn.reactivate svg {
-  width: 15px;
-  height: 15px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 </style>
@@ -1339,7 +1150,7 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
  
 <form id="filtroLocalTrabajadores" onsubmit="return false;">
   <div class="filters-bar">
-    <div class="filter-group" style="flex:1;min-width:200px">
+    <div class="filter-group filter-principal">
       <span class="filter-label">Buscar</span>
       <div class="search-wrap">
         <svg viewBox="0 0 24 24">
@@ -1379,8 +1190,8 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
     </div>
 
     <div class="filter-group" style="justify-content:flex-end">
-      <span class="filter-label" style="visibility:hidden">x</span>
-      <div style="display:flex;gap:8px">
+      <span class="filter-label filter-label-hidden">x</span>
+      <div class="filter-buttons">
         <button type="button" class="btn-filter" id="btnFiltrarLocal">
           <svg viewBox="0 0 24 24">
             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
@@ -1457,7 +1268,7 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
         <tr>
           <td>
             <div class="worker-cell">
-              <div class="worker-avatar" style="background:<?php echo avColor($id)?>"><?php echo avInit($nom,$ape)?></div>
+              <div class="worker-avatar <?php echo claseAvatar($id) ?>"><?php echo htmlspecialchars(inicialesAvatar($nom, $ape)) ?></div>
               <div>
                 <div class="worker-name"><?php echo htmlspecialchars("$nom $ape")?></div>
                 <div class="worker-id">
@@ -1583,30 +1394,28 @@ tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);verti
 </div><!-- /main -->
 </div><!-- /layout -->
 
-<?php if (isset($_GET['mensaje'])): ?>
-
-  <?php if ($_GET['mensaje'] === 'reactivado'): ?>
-    <div class="toast-sistema toast-ok">
-      <strong>Trabajador reactivado correctamente.</strong>
-      <span>El trabajador vuelve a estar activo en el sistema.</span>
-    </div>
-  <?php endif; ?>
-
-  <?php if ($_GET['mensaje'] === 'inactivado'): ?>
-    <div class="toast-sistema toast-warning">
-      <strong>Trabajador marcado como inactivo.</strong>
-      <span>No se eliminó de la base de datos.</span>
-    </div>
-  <?php endif; ?>
-
-  <?php if ($_GET['mensaje'] === 'id_invalido'): ?>
-    <div class="toast-sistema toast-error">
-      <strong>ID de trabajador inválido.</strong>
-      <span>No se pudo completar la acción.</span>
-    </div>
-  <?php endif; ?>
-
-<?php endif; ?>
+<?php
+// Resultado de la última acción, con el componente compartido de avisos
+// (views/components/notificaciones.php + assets/js/notificaciones.js).
+switch ($_GET['mensaje'] ?? '') {
+    case 'creado':
+        $nuevoId = (int)($_GET['nuevo_id'] ?? 0);
+        echo avisoAlCargar('ok', 'Trabajador creado correctamente. Ahora puedes continuar registrando su contratación.',
+            $nuevoId > 0 ? ['texto' => 'Ir a Contratación', 'href' => '../contratacion/index.php?nuevo=1&trabajador=' . $nuevoId]
+                         : ['texto' => 'Ir a Contratación', 'href' => '../contratacion/index.php'],
+            null, 10000);
+        break;
+    case 'reactivado':
+        echo avisoAlCargar('ok', 'El trabajador vuelve a estar activo en el sistema.', null, 'Trabajador reactivado correctamente.');
+        break;
+    case 'inactivado':
+        echo avisoAlCargar('aviso', 'No se eliminó de la base de datos.', null, 'Trabajador marcado como inactivo.');
+        break;
+    case 'id_invalido':
+        echo avisoAlCargar('error', 'No se pudo completar la acción.', null, 'ID de trabajador inválido.');
+        break;
+}
+?>
  
 <script>
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('open')}
@@ -1762,28 +1571,6 @@ function toggleNumeroHijos() {
         }
     }
 }
-setTimeout(function () {
-    var toast = document.querySelector('.toast-sistema');
-
-    if (!toast) {
-        return;
-    }
-
-    toast.style.transition = 'opacity .45s ease, transform .45s ease';
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(-10px)';
-
-    setTimeout(function () {
-        toast.remove();
-
-        var url = new URL(window.location.href);
-        if (url.searchParams.has('mensaje')) {
-            url.searchParams.delete('mensaje');
-            window.history.replaceState({}, document.title, url.pathname + url.search);
-        }
-    }, 500);
-
-}, 5000);
 </script>
 <script>
 

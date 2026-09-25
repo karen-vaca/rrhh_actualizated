@@ -49,6 +49,15 @@ requerirAcceso();
             exit;
         }
 
+        // Desde la página de edición (volver=editar): si se guardó, a la ficha del contrato;
+        // si no, de vuelta al formulario con el aviso.
+        $idVolver = (int)post('contrato_id');
+        if (post('volver') === 'editar' && $idVolver > 0) {
+            $destino = in_array($mensaje, ['actualizado', 'renovado', 'terminado'], true) ? 'ver.php' : 'editar.php';
+            header('Location: ' . $destino . '?' . http_build_query(array_merge(['id' => $idVolver, 'mensaje' => $mensaje], $extra)));
+            exit;
+        }
+
         header('Location: index.php?' . http_build_query(array_merge(['mensaje' => $mensaje], $extra)));
         exit;
     }
@@ -162,6 +171,23 @@ requerirAcceso();
         return $row ? (int)$row['id_trabajador'] : null;
     }
 
+    // Editar y renovar trabajan siempre sobre el trabajador ORIGINAL del contrato. Si el
+    // formulario envía otro id_trabajador (campo manipulado), se rechaza: un contrato no se
+    // reasigna; si el trabajador es incorrecto se elimina el contrato y se crea uno nuevo.
+    function trabajadorDelContrato(PDO $conexion, ?int $idContrato, ?int $idEnviado): int {
+        $original = $idContrato ? obtenerIdTrabajadorContrato($conexion, $idContrato) : null;
+        if (!$original) {
+            redirectWith('id_invalido');
+        }
+        if ($idEnviado !== null && $idEnviado !== $original) {
+            redirectWith('validacion', [
+                'campo' => 'id_trabajador',
+                'texto' => 'Un contrato no puede reasignarse a otro trabajador. Si el trabajador es incorrecto, crea un contrato nuevo.',
+            ]);
+        }
+        return $original;
+    }
+
     // Si alguna validación falla, responde con el mensaje exacto del campo (JSON para
     // el formulario de nueva contratación, redirección con aviso para editar/renovar).
     function rechazarValidacion(array $errores): void {
@@ -199,7 +225,8 @@ requerirAcceso();
             'jornada' => post('jornada') ?: 'Completa (46h/sem)',
             'modalidad' => post('modalidad') ?: 'Presencial',
             'periodo_prueba' => post('periodo_prueba') ?: 'Sin periodo',
-            'observaciones' => post('observaciones') ?: null,
+            // null = el formulario no trae el campo (asistente de renovación): se conservan las existentes.
+            'observaciones' => array_key_exists('observaciones', $_POST) ? (post('observaciones') ?: '') : null,
         ];
     }
 
@@ -239,7 +266,7 @@ requerirAcceso();
             ':jornada' => $data['jornada'],
             ':modalidad' => $data['modalidad'],
             ':periodo_prueba' => $data['periodo_prueba'],
-            ':observaciones' => $data['observaciones'],
+            ':observaciones' => $data['observaciones'] ?: null,
         ];
 
         if (columnaExiste($conexion, 'contratos', 'id_area')) {
@@ -278,7 +305,6 @@ requerirAcceso();
             'jornada = :jornada',
             'modalidad = :modalidad',
             'periodo_prueba = :periodo_prueba',
-            'observaciones = :observaciones',
         ];
 
         $params = [
@@ -291,14 +317,15 @@ requerirAcceso();
             ':jornada' => $data['jornada'],
             ':modalidad' => $data['modalidad'],
             ':periodo_prueba' => $data['periodo_prueba'],
-            ':observaciones' => $data['observaciones'],
             ':id_contrato' => $idContrato,
         ];
 
-        if (columnaExiste($conexion, 'contratos', 'id_trabajador') && !empty($data['id_trabajador'])) {
-            $sets[] = 'id_trabajador = :id_trabajador';
-            $params[':id_trabajador'] = $data['id_trabajador'];
+        if ($data['observaciones'] !== null) {
+            $sets[] = 'observaciones = :observaciones';
+            $params[':observaciones'] = $data['observaciones'] !== '' ? $data['observaciones'] : null;
         }
+
+        // El trabajador de un contrato nunca cambia (ver trabajadorDelContrato()).
 
         if (columnaExiste($conexion, 'contratos', 'id_area')) {
             $sets[] = 'id_area = :id_area';
@@ -367,9 +394,8 @@ requerirAcceso();
             $idContrato = postInt('contrato_id');
             $data = datosContratoPost();
 
-            if (!$idContrato) {
-                redirectWith('id_invalido');
-            }
+            $idTrabajador = trabajadorDelContrato($conexion, $idContrato, $data['id_trabajador']);
+            $data['id_trabajador'] = $idTrabajador;
 
             validarDatosContrato($data, false);
 
@@ -377,17 +403,13 @@ requerirAcceso();
 
             actualizarContrato($conexion, $idContrato, $data, false);
 
-            $idTrabajador = $data['id_trabajador'] ?: obtenerIdTrabajadorContrato($conexion, $idContrato);
-
-            if ($idTrabajador) {
-                actualizarTrabajadorDesdeContrato(
-                    $conexion,
-                    $idTrabajador,
-                    $data['id_area'],
-                    $data['id_cargo'],
-                    $data['fecha_ingreso']
-                );
-            }
+            actualizarTrabajadorDesdeContrato(
+                $conexion,
+                $idTrabajador,
+                $data['id_area'],
+                $data['id_cargo'],
+                $data['fecha_ingreso']
+            );
 
             $conexion->commit();
             redirectWith('actualizado');
@@ -397,21 +419,12 @@ requerirAcceso();
             $idContrato = postInt('contrato_id');
             $data = datosContratoPost();
 
-            if (!$idContrato) {
-                redirectWith('id_invalido');
-            }
+            $idTrabajador = trabajadorDelContrato($conexion, $idContrato, $data['id_trabajador']);
 
             validarDatosContrato($data, false);
-
-            $idTrabajador = $data['id_trabajador'] ?: obtenerIdTrabajadorContrato($conexion, $idContrato);
             exigirTrabajadorActivo($conexion, $idTrabajador);
 
             $conexion->beginTransaction();
-
-            if (!$idTrabajador) {
-                $conexion->rollBack();
-                redirectWith('id_invalido');
-            }
 
             $data['id_trabajador'] = $idTrabajador;
             $data['estado'] = 'Activo';
@@ -448,7 +461,11 @@ requerirAcceso();
             ");
             $stmt->execute([':id_contrato' => $idContrato]);
 
-            redirectWith('terminado');
+            // El aviso nombra al trabajador: "Se ha finalizado el contrato de …".
+            $stmtNombre = $conexion->prepare("SELECT TRIM(CONCAT(t.nombres, ' ', t.apellidos)) FROM contratos c
+                                              JOIN trabajadores t ON t.id_trabajador = c.id_trabajador WHERE c.id_contrato = ?");
+            $stmtNombre->execute([$idContrato]);
+            redirectWith('terminado', ['nombre' => (string)$stmtNombre->fetchColumn()]);
         }
 
         redirectWith('accion_invalida');

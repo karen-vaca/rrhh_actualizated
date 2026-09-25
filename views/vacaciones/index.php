@@ -27,7 +27,12 @@ $inicial = strtoupper(
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Vacaciones | PlastyPetco</title>
-<?php require __DIR__ . '/../components/estilos_base.php'; ?>
+<?php
+// Pendiente de migrar a assets/css/componentes.css (tarjetas, filtros, tabla, avatares):
+// esta pantalla todavía usa su propio CSS con los mismos nombres de clase.
+$componentesPendientes = true;
+require __DIR__ . '/../components/estilos_base.php';
+?>
 <style>
 
 /* ── LAYOUT ── */

@@ -1,0 +1,45 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Formulario de edición (fuente única de verdad)
+   ───────────────────────────────────────────────────────────────────────────
+   Tarjeta con banner de identidad (solo lectura), secciones con grilla de campos,
+   etiquetas, inputs/selects y barra de acciones al pie.
+   Tomado de Editar Trabajador (views/trabajadores/editar.php). Lo usan Editar Trabajador
+   y Editar Contrato. Se carga con <link rel="stylesheet" href="../../assets/css/edicion.css">
+   (junto con ficha.css para el encabezado de página y los botones).
+   ═══════════════════════════════════════════════════════════════════════════ */
+.edit-card{background:var(--white);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-md);overflow:hidden}
+.edit-hero{position:relative;padding:22px 26px;background:linear-gradient(135deg,#0d5c2e 0%,#0d3d1e 55%,#145c33 100%);display:flex;align-items:center;justify-content:space-between;gap:18px;overflow:hidden}
+.edit-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 85% 20%,rgba(45,223,110,.22),transparent 32%);pointer-events:none}
+.edit-identity{position:relative;z-index:1;display:flex;align-items:center;gap:16px;min-width:0}
+/* El color de fondo lo pone la clase .avatar-cN (views/components/avatar.php) */
+.edit-avatar{width:68px;height:68px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;box-shadow:0 14px 30px rgba(0,0,0,.22),0 0 0 1px rgba(255,255,255,.14) inset;flex-shrink:0}
+.edit-name{font-family:var(--tx-fuente-titulos);font-size:var(--tx-nombre-encabezado);font-weight:var(--tx-peso-titulo-pagina);color:#fff;letter-spacing:-.4px;line-height:1.05;margin-bottom:8px}
+.edit-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.edit-pill{border-radius:999px;padding:4px 10px;font-size:var(--tx-insignia);font-weight:var(--tx-peso-medio);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.86)}
+.edit-hint{position:relative;z-index:1;color:rgba(255,255,255,.70);font-size:var(--tx-ayuda-chica);max-width:260px;text-align:right;line-height:1.35}
+.edit-body{padding:22px}
+.edit-section{border:1px solid var(--border);border-radius:16px;background:#fbfdfc;margin-bottom:16px;overflow:hidden}
+.edit-section:last-child{margin-bottom:0}
+.edit-section-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f7fbf8}
+.edit-section-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-seccion);font-weight:var(--tx-peso-titulo);color:var(--tx-color);letter-spacing:-.2px}
+.edit-section-tag{font-size:var(--tx-etiqueta);font-weight:var(--tx-peso-enfasis);text-transform:uppercase;letter-spacing:.7px;color:var(--green-dim);background:var(--green-mist);border:1px solid rgba(45,223,110,.16);border-radius:999px;padding:4px 9px}
+.edit-form-grid{padding:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.edit-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.edit-field.full{grid-column:1 / -1}
+.edit-label{font-size:var(--tx-etiqueta-form);font-weight:var(--tx-peso-enfasis);color:var(--tx-color-medio);letter-spacing:.3px}
+.edit-input,.edit-select{width:100%;height:42px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:0 13px;font-size:13.5px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s}
+.edit-select{appearance:none;padding-right:34px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%238aab96' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.edit-input:focus,.edit-select:focus{border-color:#b6dfc4;box-shadow:0 0 0 3px rgba(45,223,110,0.07)}
+.edit-input::placeholder{color:var(--text-soft)}
+.edit-actions{position:sticky;bottom:0;z-index:5;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:14px 22px;display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.edit-alert{border-radius:12px;padding:11px 14px;font-size:13px;font-weight:600;margin-bottom:14px;border:1px solid #fecaca;background:#fff1f2;color:#dc2626}
+.edit-section-sub{font-family:var(--tx-fuente-texto);font-size:var(--tx-ayuda);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);letter-spacing:0;margin-left:4px}
+.edit-pill-estado.is-activo{background:rgba(45,223,110,.22);border-color:rgba(45,223,110,.45);color:#fff}
+.edit-pill-estado.is-inactivo{background:rgba(248,113,113,.25);border-color:rgba(248,113,113,.5);color:#fff}
+.edit-estado-nota{font-size:var(--tx-ayuda-chica);color:rgba(255,255,255,.72)}
+@media(max-width:700px){
+  .edit-hero{flex-direction:column;align-items:flex-start}
+  .edit-hint{text-align:left;max-width:none}
+  .edit-form-grid{grid-template-columns:1fr}
+  .edit-actions .btn{flex:1}
+}

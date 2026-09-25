@@ -247,7 +247,12 @@ try {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Perfil de Salud | PlastyPetco</title>
-<?php require __DIR__ . '/../components/estilos_base.php'; ?>
+<?php
+// Pendiente de migrar a assets/css/componentes.css (tarjetas, filtros, tabla, avatares):
+// esta pantalla todavía usa su propio CSS con los mismos nombres de clase.
+$componentesPendientes = true;
+require __DIR__ . '/../components/estilos_base.php';
+?>
 <style>
 /* ==========================================================================
    TOKENS — Parte 2 del Design System (idénticos a trabajadores/index.php)
@@ -837,11 +842,12 @@ document.addEventListener('keydown', function (e) {
     else if (!errInicio && fin.value && fin.value < inicio.value) errFin = 'La fecha de fin no puede ser anterior a la fecha de inicio.';
     marcar(inicio, errInicio);
     marcar(fin, errFin);
-    fin.min = inicio.value || '';
     return errInicio || errFin;
   }
-  inicio.addEventListener('change', validar);
-  fin.addEventListener('change', validar);
+  // Se valida al salir del campo (Chrome dispara "change" con cada dígito del año) y no se
+  // asigna fin.min: cambiarlo mientras se escribe reiniciaba el año (quedaba "0022" o vacío).
+  inicio.addEventListener('blur', validar);
+  fin.addEventListener('blur', validar);
   form.addEventListener('submit', function (ev) {
     const error = validar();
     if (error) { ev.preventDefault(); alert(error); }

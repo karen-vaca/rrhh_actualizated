@@ -1,0 +1,12 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Formularios compartidos — ver assets/js/formularios.js
+   (se carga en todas las pantallas desde views/components/estilos_base.php)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Error de campo en línea: borde rojo en el campo y mensaje debajo */
+.has-error,.has-error:focus{border-color:#f87171 !important;background:#fff7f7 !important;box-shadow:0 0 0 3px rgba(248,113,113,.12) !important}
+.field-error{display:flex;align-items:flex-start;gap:5px;margin-top:5px;font-size:11.5px;font-weight:500;line-height:1.35;color:#dc2626}
+.field-error::before{content:'!';flex-shrink:0;width:14px;height:14px;border-radius:50%;background:#dc2626;color:#fff;font-size:10px;font-weight:700;line-height:14px;text-align:center;margin-top:1px}
+
+/* Montos en pesos (data-dinero): cifras alineadas */
+input[data-dinero]{font-variant-numeric:tabular-nums}

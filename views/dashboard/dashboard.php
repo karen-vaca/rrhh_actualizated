@@ -30,7 +30,12 @@ try{
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Dashboard | PlastyPetco</title>
-<?php require __DIR__ . '/../components/estilos_base.php'; ?>
+<?php
+// Pendiente de migrar a assets/css/componentes.css (tarjetas, filtros, tabla, avatares):
+// esta pantalla todavía usa su propio CSS con los mismos nombres de clase.
+$componentesPendientes = true;
+require __DIR__ . '/../components/estilos_base.php';
+?>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
 

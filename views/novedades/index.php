@@ -380,7 +380,12 @@ if ($tiposJson === false) $tiposJson = '{}';
 <title>Novedades | PlastyPetco</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<?php require __DIR__ . '/../components/estilos_base.php'; ?>
+<?php
+// Pendiente de migrar a assets/css/componentes.css (tarjetas, filtros, tabla, avatares):
+// esta pantalla todavía usa su propio CSS con los mismos nombres de clase.
+$componentesPendientes = true;
+require __DIR__ . '/../components/estilos_base.php';
+?>
 <style>
 :root{--green-strong:#27ff7a;--line:var(--border);--bg:var(--content-bg);--card:var(--white);--muted:var(--text-soft)}
 a{text-decoration:none;color:inherit}
@@ -1032,11 +1037,12 @@ cargarTipos();
     else if (!errInicio && fin.value && fin.value < inicio.value) errFin = 'La fecha de fin no puede ser anterior a la fecha de inicio.';
     marcar(inicio, errInicio);
     marcar(fin, errFin);
-    fin.min = inicio.value || '';
     return errInicio || errFin;
   }
-  inicio.addEventListener('change', validar);
-  fin.addEventListener('change', validar);
+  // Se valida al salir del campo (Chrome dispara "change" con cada dígito del año) y no se
+  // asigna fin.min: cambiarlo mientras se escribe reiniciaba el año (quedaba "0022" o vacío).
+  inicio.addEventListener('blur', validar);
+  fin.addEventListener('blur', validar);
   form.addEventListener('submit', function (ev) {
     const error = validar();
     if (error) {

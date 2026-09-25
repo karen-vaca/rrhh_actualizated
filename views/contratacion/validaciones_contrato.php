@@ -62,9 +62,11 @@ function validarMonto($raw, string $etiqueta, bool $obligatorio, bool $permiteCe
     }
 
     if (!$formatoValido) {
+        // El formulario pone los puntos de miles solo (assets/js/formularios.js); este mensaje
+        // solo aparece si el valor llega manipulado, así que no se le pide al usuario un formato.
         return ['valor' => null, 'error' => preg_match('/^[\d.,]+$/', $texto)
-            ? "$etiqueta tiene los puntos o comas mal ubicados. Escríbelo solo con números, por ejemplo 1300000."
-            : "$etiqueta solo puede contener números, sin letras ni símbolos."];
+            ? "$etiqueta no tiene un formato de número válido."
+            : "$etiqueta no es un valor válido: solo admite números, sin letras ni símbolos."];
     }
 
     // Normalizar a formato numérico de PHP.

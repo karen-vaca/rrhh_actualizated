@@ -123,7 +123,8 @@ try {
         ':observaciones'            => $d['observaciones'],
     ]);
 
-    header("Location: index.php?mensaje=exito");
+    // El listado muestra el aviso "Trabajador creado…" con el acceso directo a su contratación.
+    header("Location: index.php?mensaje=creado&nuevo_id=" . (int)$conexion->lastInsertId());
     exit();
 } catch (Exception $e) {
     die("Error al guardar: " . $e->getMessage());

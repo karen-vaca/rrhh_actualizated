@@ -1,0 +1,129 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Componentes de contenido compartidos (fuente única de verdad)
+   ───────────────────────────────────────────────────────────────────────────
+   Tarjetas de estadística (.mini-stat), barra de filtros (.filters-bar),
+   tabla (.table-wrap), celda de trabajador con avatar (.worker-cell,
+   .worker-avatar + .avatar-cN), estados (.badge-activo/.badge-inactivo) y
+   botones de acción por fila (.acc-btn).
+   Tomados del listado de Trabajadores. Se carga desde views/components/estilos_base.php.
+   El color del avatar lo decide views/components/avatar.php (claseAvatar()) según
+   el id del trabajador: la misma persona tiene el mismo color en todo el sistema.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ic-green{background:#eafaf1;color:#1a9945}
+.ic-blue{background:#eff6ff;color:#2563eb}
+.ic-red{background:#fff1f2;color:#dc2626}
+.ic-yellow{background:#fffbeb;color:#d97706}
+.ic-purple{background:#f5f3ff;color:#7c3aed}
+.nc-green{color:#1a9945}
+.nc-blue{color:#2563eb}
+.nc-red{color:#dc2626}
+.nc-yellow{color:#d97706}
+.nc-purple{color:#7c3aed}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.mini-stat{background:var(--white);border:1px solid var(--border);border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;animation:fadeUp .5s ease both}
+.mini-stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.mini-stat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mini-stat-icon svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.mini-stat-body{}
+.mini-stat-num{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1}
+.mini-stat-label{font-size:12.5px;color:var(--text-mid);margin-top:2px;font-weight:500}
+.mini-stat-sub{font-size:11.5px;color:var(--text-soft);margin-top:2px}
+.mini-stat:nth-child(1){animation-delay:.04s}
+.mini-stat:nth-child(2){animation-delay:.08s}
+.mini-stat:nth-child(3){animation-delay:.12s}
+.mini-stat:nth-child(4){animation-delay:.16s}
+.filters-bar{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;box-shadow:var(--shadow)}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filter-label{font-size:10.5px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:.5px}
+.search-wrap{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:9px 14px;transition:border-color .2s,box-shadow .2s}
+.search-wrap:focus-within{border-color:#b6dfc4;box-shadow:0 0 0 3px rgba(45,223,110,0.07)}
+.search-wrap svg{width:15px;height:15px;stroke:var(--text-soft);fill:none;stroke-width:1.8;flex-shrink:0}
+.search-wrap input{background:none;border:none;outline:none;font-size:13.5px;color:var(--text);font-family:'DM Sans',sans-serif;width:100%}
+.search-wrap input::placeholder{color:var(--text-soft)}
+.filter-select{height:40px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:0 32px 0 12px;font-size:13px;color:var(--text-mid);font-family:'DM Sans',sans-serif;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238aab96' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:border-color .2s;min-width:130px}
+.filter-select:focus{outline:none;border-color:#b6dfc4}
+.btn-filter{display:flex;align-items:center;gap:6px;height:40px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:0 16px;font-size:13px;color:var(--text-mid);cursor:pointer;transition:all .2s;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.btn-filter:hover{border-color:#b6dfc4;background:#f0f8f3}
+.btn-filter svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+.btn-clear{color:#dc2626;border-color:#fecaca}
+.btn-clear:hover{background:#fff1f2;border-color:#fca5a5}
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);animation:fadeUp .5s .2s ease both}
+.table-top{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.table-count{font-size:13px;color:var(--text-soft)}
+.table-count strong{color:var(--text);font-weight:600}
+.table-actions{display:flex;gap:8px}
+.btn-icon{width:32px;height:32px;border-radius:8px;background:var(--white);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:var(--text-mid)}
+.btn-icon:hover{border-color:#b6dfc4;color:var(--green-dark)}
+.btn-icon svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+table{width:100%;border-collapse:collapse}
+thead tr{background:var(--white);border-bottom:1px solid var(--border)}
+thead th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--text-soft);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#f7fbf8}
+tbody td{padding:13px 16px;font-size:var(--tx-valor);color:var(--tx-color);vertical-align:middle}
+.worker-cell{display:flex;align-items:center;gap:12px}
+.worker-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:800;color:#fff;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.12)}
+.worker-name{font-size:var(--tx-valor);font-weight:var(--tx-peso-enfasis);color:var(--tx-color);line-height:1.2}
+.worker-id{font-size:11.5px;color:var(--text-soft);margin-top:1px}
+.badge-activo{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;font-size:12px;font-weight:700;white-space:nowrap;}
+.badge-inactivo{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;font-size:12px;font-weight:700;white-space:nowrap;}
+.badge-dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+.dot-green{background:#22c55e;}
+.dot-red{background:#dc2626;}
+.badge-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.dot-green{background:#16a34a}
+.dot-gray{background:#9ca3af}
+.acc-btns{display:flex;align-items:center;gap:4px}
+.acc-btn{width:30px;height:30px;border-radius:8px;background:none;border:1px solid transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .18s;color:var(--text-soft);text-decoration:none}
+.acc-btn:hover{background:var(--white);border-color:var(--border);color:var(--green-dark)}
+.acc-btn svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
+.acc-btn.danger:hover{background:#fff1f2;border-color:#fecaca;color:#dc2626}
+.acc-btn{position:relative;width:auto;min-width:30px;padding:0 7px;gap:6px}
+.acc-btn[data-tip]::after{content:attr(data-tip);position:absolute;right:calc(100% + 6px);top:50%;transform:translateY(-50%);background:#0d1f11;color:#fff;font-size:11px;font-weight:500;line-height:1;padding:6px 8px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;z-index:20}
+.acc-btn[data-tip]:hover::after,.acc-btn[data-tip]:focus-visible::after{opacity:1}
+.acc-btn.reactivate{background: #eff6ff;border-color: #bfdbfe;color: #2563eb;}
+.acc-btn.reactivate:hover{background: #dbeafe;border-color: #93c5fd;color: #1d4ed8;}
+.acc-btn.reactivate svg{width: 15px;height: 15px;stroke: currentColor;fill: none;stroke-width: 2;stroke-linecap: round;stroke-linejoin: round;}
+/* Texto de cada acción: oculto (solo lectores de pantalla) y visible junto al ícono en
+   pantallas de 1600px o más, donde el tooltip se apaga. Toda acción debe llevarlo. */
+.acc-label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(min-width:1600px){
+  .acc-btn[data-tip]::after{display:none}
+  .acc-label{position:static;width:auto;height:auto;margin:0;overflow:visible;clip:auto;font-size:12px;font-weight:500}
+}
+@media(max-width:900px){
+  .mini-stats{grid-template-columns:1fr 1fr}
+}
+@media(max-width:640px){
+  .mini-stats{grid-template-columns:1fr 1fr}
+}
+
+/* Colores de avatar (mismo orden que usaba Trabajadores: id % 6) */
+.avatar-c0{background:linear-gradient(135deg,#22c55e,#15803d)}
+.avatar-c1{background:linear-gradient(135deg,#3b82f6,#1d4ed8)}
+.avatar-c2{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+.avatar-c3{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.avatar-c4{background:linear-gradient(135deg,#ec4899,#be185d)}
+.avatar-c5{background:linear-gradient(135deg,#14b8a6,#0f766e)}
+
+/* Grupo principal de la barra de filtros (la búsqueda): ocupa el espacio libre */
+.filter-principal{flex:1;min-width:200px}
+/* Etiqueta invisible que alinea los botones con los campos de la barra de filtros */
+.filter-label-hidden{visibility:hidden}
+.filter-buttons{display:flex;gap:8px}
+/* Tablas anchas: desplazamiento horizontal dentro de la tarjeta */
+.table-scroll{width:100%;overflow-x:auto}
+
+/* Tarjeta de estadística que filtra la tabla (clic o Enter; segundo clic quita el filtro) */
+.mini-stat-filtro{cursor:pointer}
+.mini-stat-filtro:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.mini-stat-filtro.activa{border-color:var(--green);box-shadow:0 0 0 3px rgba(45,223,110,.18),var(--shadow)}
+
+/* Encabezado de página: botón secundario "Volver" junto a la acción principal */
+.page-header-right{display:flex;align-items:center;gap:10px}
+.btn-back{display:flex;align-items:center;gap:7px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:500;color:var(--text-mid);text-decoration:none;transition:all .2s}
+.btn-back:hover{border-color:#b6dfc4;background:#f7fbf8}
+.btn-back svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}

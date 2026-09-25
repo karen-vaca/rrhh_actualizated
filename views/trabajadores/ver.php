@@ -11,6 +11,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 require_once '../../config/conexion.php';
 require_once __DIR__ . '/funciones_trabajador.php';
+require_once __DIR__ . '/../components/avatar.php';
 
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -183,6 +184,7 @@ $inicial = inicialesPersona($nombres, $apellidos);
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Ver trabajador | PlastyPetco</title>
 <?php require __DIR__ . '/../components/estilos_base.php'; ?>
+<link rel="stylesheet" href="../../assets/css/ficha.css">
 
 <style>
 
@@ -196,67 +198,18 @@ $inicial = inicialesPersona($nombres, $apellidos);
 /* main */
 
 /* content */
-.page-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:4px}
-.page-header-left{display:flex;align-items:center;gap:16px}
-.page-icon{width:52px;height:52px;background:var(--green-mist);border:1px solid rgba(45,223,110,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.page-icon svg{width:26px;height:26px;stroke:var(--green-dim);fill:none;stroke-width:1.7}
 .page-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-pagina);font-weight:var(--tx-peso-titulo-pagina);color:var(--tx-color);letter-spacing:-.4px;line-height:1.1}
 .page-sub{font-size:var(--tx-subtitulo);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);margin-top:3px}
-.page-header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 
 /* buttons */
-.btn{height:40px;border-radius:11px;border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;transition:all .18s;background:var(--white);color:var(--text-mid)}
-.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}
-.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
-.btn-primary{background:linear-gradient(135deg,var(--green),var(--green-dim));color:#021a08;border-color:transparent;box-shadow:0 6px 18px rgba(45,223,110,.22)}
-.btn-danger{background:#fff1f2;color:#dc2626;border-color:#fecaca}
-.btn-blue{background:#eff6ff;color:#2563eb;border-color:#bfdbfe}
 
 /* profile view */
-.view-grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}
-.profile-card{background:var(--white);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-md);overflow:hidden}
-.profile-hero{position:relative;padding:24px 26px;background:linear-gradient(135deg,#0d5c2e 0%,#0d3d1e 55%,#145c33 100%);min-height:154px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.profile-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 85% 20%,rgba(45,223,110,.22),transparent 32%);pointer-events:none}
-.profile-identity{position:relative;z-index:1;display:flex;align-items:center;gap:18px;min-width:0}
-.worker-avatar-lg{width:76px;height:76px;border-radius:22px;background:linear-gradient(135deg,var(--green),var(--green-dim));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#021a08;box-shadow:0 14px 30px rgba(0,0,0,.22),0 0 0 1px rgba(255,255,255,.14) inset;flex-shrink:0}
-.worker-main-name{font-family:var(--tx-fuente-titulos);font-size:var(--tx-nombre-encabezado);font-weight:var(--tx-peso-titulo-pagina);color:#fff;letter-spacing:-.4px;line-height:1.05;margin-bottom:8px}
-.worker-main-role{font-size:var(--tx-valor);font-weight:var(--tx-peso-medio);color:rgba(255,255,255,.85);margin:-2px 0 10px}
-.worker-main-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.section-nota{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);font-size:var(--tx-ayuda);color:var(--tx-color-suave)}
-.meta-pill{border-radius:999px;padding:4px 10px;font-size:var(--tx-insignia);font-weight:var(--tx-peso-medio);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.86)}
-.status-pill{position:relative;z-index:1;display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:7px 12px;font-size:12px;font-weight:700;white-space:nowrap}
-.status-active{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
-.status-inactive{background:#fef2f2;color:#dc2626;border:1px solid #fecaca}
-.status-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
-.profile-body{padding:20px 22px 22px}
 
-.info-section{background:var(--white);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}
-.info-section + .info-section{margin-top:14px}
-.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
-.section-title{font-family:var(--tx-fuente-titulos);font-size:var(--tx-titulo-seccion);font-weight:var(--tx-peso-titulo);color:var(--tx-color);letter-spacing:-.2px}
-.section-tag{font-size:11px;font-weight:var(--tx-peso-enfasis);color:var(--green-dim);background:var(--green-mist);border:1px solid rgba(45,223,110,.18);border-radius:999px;padding:4px 9px}
-.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.info-item{background:#fbfdfb;border:1px solid #edf4ef;border-radius:13px;padding:12px}
-.info-label{font-size:var(--tx-etiqueta);font-weight:var(--tx-peso-enfasis);color:var(--tx-color-suave);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px}
-.info-value{font-size:var(--tx-valor);font-weight:var(--tx-peso-normal);color:var(--tx-color);line-height:1.35;word-break:break-word}
-.side-column{display:flex;flex-direction:column;gap:18px}
-.side-card{background:var(--white);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}
-.side-card .info-grid{grid-template-columns:1fr}
-.record-item{display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--border)}
-.record-item:last-child{border-bottom:none;padding-bottom:0}
-.record-dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 0 5px var(--green-mist);margin-top:5px;flex-shrink:0}
-.record-title{font-size:var(--tx-valor);font-weight:var(--tx-peso-medio);color:var(--tx-color)}
-.record-sub{font-size:var(--tx-ayuda-chica);color:var(--tx-color-suave);margin-top:2px}
 
 /* footer */
 
 /* overlay and responsive */
-@media(max-width:1100px){
-  .view-grid{grid-template-columns:1fr}
-}
 @media(max-width:680px){
-  .profile-hero{align-items:flex-start;flex-direction:column}
-  .info-grid{grid-template-columns:1fr}
   .page-title{font-size:var(--tx-titulo-pagina)}
 }
 
@@ -362,7 +315,6 @@ $inicial = inicialesPersona($nombres, $apellidos);
 </style>
 <style>
 /* Folio: el id interno como dato secundario (referencia para soporte y auditoría) */
-.folio{display:inline-block;margin-left:8px;font-size:11.5px;font-weight:500;color:var(--text-soft);letter-spacing:.2px;vertical-align:middle;white-space:nowrap}
 .lugar-revisar{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:2px 8px;vertical-align:middle}
 .nota-campo{font-size:var(--tx-ayuda);font-weight:var(--tx-peso-normal);color:var(--tx-color-suave);line-height:1.45}
 .nota-campo strong{color:var(--text-mid)}
@@ -451,7 +403,7 @@ $inicial = inicialesPersona($nombres, $apellidos);
     <div class="profile-card">
       <div class="profile-hero">
         <div class="profile-identity">
-          <div class="worker-avatar-lg"><?php echo e($inicialTrabajador ?: 'TR'); ?></div>
+          <div class="worker-avatar-lg <?php echo claseAvatar($trabajador['id_trabajador']); ?>"><?php echo e(inicialesAvatar($trabajador['nombres'] ?? '', $trabajador['apellidos'] ?? '')); ?></div>
           <div>
             <div class="worker-main-name"><?php echo e($nombreCompleto ?: 'Sin nombre'); ?><span class="folio" title="Identificador interno del trabajador (referencia para soporte)">Folio #<?php echo str_pad((int)$trabajador['id_trabajador'], 4, '0', STR_PAD_LEFT); ?></span></div>
             <div class="worker-main-role"><?php

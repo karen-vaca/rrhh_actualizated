@@ -1,0 +1,46 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Notificaciones y confirmaciones compartidas — ver assets/js/notificaciones.js
+   (se carga en todas las pantallas desde views/components/estilos_base.php)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Avisos (toast) ── */
+.avisos{position:fixed;top:78px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:10px;width:min(380px,calc(100vw - 32px));pointer-events:none}
+.aviso{pointer-events:auto;display:flex;align-items:flex-start;gap:11px;background:#fff;border:1px solid #e0ebe4;border-left-width:4px;border-radius:14px;padding:13px 12px 13px 14px;box-shadow:0 18px 45px rgba(0,0,0,.14);font-family:'DM Sans',sans-serif;animation:avisoEntrada .28s cubic-bezier(.22,1,.36,1) both}
+.aviso-saliendo{animation:avisoSalida .26s ease forwards}
+.aviso-icono{flex-shrink:0;width:22px;height:22px;display:flex;align-items:center;justify-content:center;margin-top:1px}
+.aviso-icono svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.aviso-cuerpo{flex:1;min-width:0}
+.aviso-titulo{font-size:13.5px;font-weight:600;color:#0d1f11;margin-bottom:2px}
+.aviso-texto{font-size:13px;line-height:1.45;color:#0d1f11;word-break:break-word}
+.aviso-accion{display:inline-flex;margin-top:8px;padding:6px 12px;border-radius:9px;font-size:12.5px;font-weight:600;text-decoration:none;background:linear-gradient(135deg,#2ddf6e,#1a9945);color:#021a08}
+.aviso-accion:hover{filter:brightness(1.05)}
+.aviso-cerrar{flex-shrink:0;width:26px;height:26px;border-radius:8px;border:none;background:none;color:#8aab96;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.aviso-cerrar:hover{background:#f2f5f3;color:#0d1f11}
+.aviso-cerrar svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+.aviso-ok{border-left-color:#16a34a}.aviso-ok .aviso-icono{color:#16a34a}
+.aviso-error{border-left-color:#dc2626}.aviso-error .aviso-icono{color:#dc2626}
+.aviso-aviso{border-left-color:#d97706}.aviso-aviso .aviso-icono{color:#d97706}
+.aviso-info{border-left-color:#2563eb}.aviso-info .aviso-icono{color:#2563eb}
+@keyframes avisoEntrada{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+@keyframes avisoSalida{to{opacity:0;transform:translateY(-10px)}}
+
+/* ── Confirmación (mismo patrón que "Inactivar trabajador") ── */
+.confirmacion-fondo{position:fixed;inset:0;z-index:10001;background:rgba(5,14,7,.56);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px}
+.confirmacion{width:min(440px,100%);background:#fff;border:1px solid #e0ebe4;border-radius:20px;padding:24px;box-shadow:0 28px 80px rgba(0,0,0,.22);font-family:'DM Sans',sans-serif;animation:avisoEntrada .22s cubic-bezier(.22,1,.36,1) both}
+.confirmacion .aviso-icono{width:46px;height:46px;border-radius:14px;margin-bottom:14px;background:#eff6ff;border:1px solid #bfdbfe;color:#2563eb}
+.confirmacion-peligro .aviso-icono{background:#fff1f2;border-color:#fecaca;color:#dc2626}
+.confirmacion .aviso-icono svg{width:23px;height:23px}
+.confirmacion-titulo{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#0d1f11;letter-spacing:-.3px;margin:0 0 8px}
+.confirmacion-mensaje{font-size:13.5px;line-height:1.55;color:#4a6655;margin:0 0 20px}
+.confirmacion-acciones{display:flex;justify-content:flex-end;gap:10px}
+.confirmacion-cancelar,.confirmacion-aceptar{height:40px;border-radius:10px;padding:0 16px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer}
+.confirmacion-cancelar{border:1px solid #e0ebe4;background:#fff;color:#4a6655}
+.confirmacion-cancelar:hover{background:#f2f5f3}
+.confirmacion-aceptar{border:1px solid #1a9945;background:linear-gradient(135deg,#2ddf6e,#1a9945);color:#021a08}
+.confirmacion-peligro .confirmacion-aceptar{border-color:#dc2626;background:#dc2626;color:#fff}
+.confirmacion-peligro .confirmacion-aceptar:hover{background:#b91c1c;border-color:#b91c1c}
+.confirmacion-cancelar:focus-visible,.confirmacion-aceptar:focus-visible,.aviso-cerrar:focus-visible{outline:2px solid #2ddf6e;outline-offset:2px}
+body.confirmacion-abierta{overflow:hidden}
+
+@media(max-width:560px){.avisos{top:auto;bottom:16px;right:16px}}
+
